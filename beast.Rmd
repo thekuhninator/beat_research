@@ -8,12 +8,51 @@ output: html_notebook
 
 # load in the neccessary libraries
 
+
+#install.packages("devtools.zip", repos = NULL)
+
+
+
+install.packages("devtools", dependencies = TRUE)
+install_github('theislab/kBET')
+install.packages("bapred")
+install.packages("ggplot2")
+library(devtools)
+install_github('theislab/kBET')
+
+install.packages('dplyr')
+install.packages('gplots')
+install.packages('getopt')
+
+install.packages('readr')
+
+```
+
+
+
+```{r}
+
 library(devtools)
 library(kBET)
-library(bapred)
+#library(bapred)
 library(ggplot2)
 
+library(dplyr)
+library(gplots)
+library(getopt)
+
+library(readr)
+#library(Rtsne)
+
 # args = commandArgs(trailingOnly=TRUE)
+#input_counts <- opt$gene
+#input_annot <- opt$annotation
+#output_dir <- opt$output_dir
+#output_name <- opt$output_name
+
+#opt = getopt(spec)
+#cat(opt$gene)
+
 
 ```
 
@@ -23,14 +62,14 @@ Get the dataset, gene counts, etc.
 data_folder = "C:/Users/Roman/Documents/Work/Depression_and_Immunology/England_Research/Data_No_Filter_Final/dataset_1"
 input_counts = "C:/Users/Roman/Documents/Work/Depression_and_Immunology/England_Research/Data_No_Filter_Final/dataset_1/toups_unfiltered_gene_counts.csv"
 input_metadata = "C:/Users/Roman/Documents/Work/Depression_and_Immunology/England_Research/Data_No_Filter_Final/dataset_1/toups_unfiltered_metadata.csv"
-output_dir = ""
-output_name = ""
+output_dir = "C:/Users/Roman/Documents/Work/Depression_and_Immunology/beast"
+output_name = "combined_dataset"
 
 # Read in data file
-my_data <- as.data.frame(t(read.csv(input_counts, header = TRUE, row.names = 1, check.names=FALSE)))
+gene_counts <- as.data.frame(t(read.csv(input_counts, header = TRUE, row.names = 1, check.names=FALSE)))
 
 #Read in annotation file
-annot <- read.csv(input_annot, header = TRUE, row.names = 1, check.names = FALSE)
+annot <- read.csv(input_metadata, header = TRUE, row.names = 1, check.names = FALSE)
 
 
 ```
@@ -39,22 +78,28 @@ Call k-BET
 
 ```{r}
 
-kbet <- function(gene_counts, metadata) 
+kbet <- function(gene_counts, metadata, factor_of_interest, output_dir, output_name) 
 {
   batch = annot$batch
   # change this to be factor of interest...
-  diagnosis = annot$scid_diagnosis
+  foi = annot[factor_of_interest]
+  
+  #print(foi)
+  
   # get rid of zero variance genes
-  new_data = my_data[ ,which(apply(t(my_data), 1, var) != 0)]
-
-  avedistVal = avedist(new_data, as.factor(batch) )#, as.factor(diagnosis))
-  pvcamVal = pvcam(new_data, as.factor(batch), as.factor(diagnosis))
-  skewdivVal = skewdiv(new_data, as.factor(batch))
+  #new_data = gene_counts[ ,which(apply(t(gene_counts), 1, var) != 0)]
+  data = gene_counts
+  #avedistVal = avedist(new_data, as.factor(batch) )#, as.factor(diagnosis))
+  #pvcamVal = pvcam(new_data, batch, foi)
+  #skewdivVal = skewdiv(new_data, as.factor(batch))
+  
   #sepscoreVal = sepscore(new_data, as.factor(batch) )
-  kldistVal = kldist(new_data, as.factor(batch))
+  
+  #kldistVal = kldist(new_data, as.factor(batch))
+  
   # diffexprmVal = 
   # cobraVal = 
-  batch.estimate <- kBET(my_data, batch, plot = FALSE)
+  batch.estimate <- kBET(data, batch, plot = FALSE) # DOUBLE CHECK EVERY LINE IN HERE...
   #batch.estimate$results
   #batch.estimate
   #batch.estimate$summary
@@ -66,37 +111,458 @@ kbet <- function(gene_counts, metadata)
   }
   
   # Generate the Plot title
-  plotTitle = paste(capitalize(unlist(strsplit(name, "_"))), collapse= " ")
+  # plotTitle = paste(capitalize(unlist(strsplit(name, "_"))), collapse= " ")
+  plotTitle = "Combined Dataset kBET"
   
-  png(file=paste( output_dir,'/', output_name, ".png", sep=""))
+  png('kbet_plot.png')
+  
+  #png(file=paste( output_dir,'/', output_name, ".png", sep=""))
   
   batch.estimate <- kBET(data, batch, plot=FALSE)
   
   plot.data <- data.frame(class=rep(c('observed', 'expected'),
-                            each=length(batch.estimate$stats$kBET.observed)), 
+                              each=length(batch.estimate$stats$kBET.observed)), 
                             data =  c(batch.estimate$stats$kBET.observed,
-                            batch.estimate$stats$kBET.expected))
-  g <- ggplot(plot.data, aes(class, data)) + geom_boxplot() + 
+                              batch.estimate$stats$kBET.expected))
+  
+ # png('kbet_plot.png')
+
+  print(ggplot(plot.data, aes(class, data)) + geom_boxplot() + 
        labs(x='Test', y='Rejection rate',title=paste(plotTitle,'kBET test results',sep=' ')) +
        theme_bw() +  
-       scale_y_continuous(limits=c(0,1))
+       scale_y_continuous(limits=c(0,1)))
   
-  g
   
+  #g
   dev.off()
+  #dev.off()
   
-  results <- batch.estimate$summary
-  results['avedist'] = avedistVal
-  results['pvcam'] = pvcamVal
-  results['skewdiv'] = skewdivVal
-  results['kldist'] = kldistVal
+  #results <- batch.estimate$summary
+  #results['avedist'] = avedistVal
+  #results['pvcam'] = pvcamVal
+  #results['skewdiv'] = skewdivVal
+  #results['kldist'] = kldistVal
   
-  results
+  #results
   
-  print('*** DONE WRITING NOW')
+#  print('*** DONE WRITING NOW')
   
-  write.csv(results, file=paste(output_dir,'/', output_name, "_kBET_results.csv", sep=''))
+  #write.csv(results, file=paste(output_dir,'/', output_name, "_kBET_results.csv", sep=''))
 
 }
+
+
+```
+
+```{r}
+
+kbet(gene_counts, metadata, "diagnosis", output_dir, output_name)
+
+```
+
+Okay now let's do PCA
+
+```{r}
+
+#!/usr/bin/Rscript
+# ---
+# title: "Shakeel's PCA script"
+# author: Shakeel Jessa
+# date: 18/Jun/2018
+# output: pdf_document
+# ---
+
+PCA <- function(input_counts, input_annot, output_dir, output_name) {
+
+  
+  #if ( is.null(opt$PCx ) ) { opt$PCx = 1}
+  #if ( is.null(opt$PCy ) ) { opt$PCy = 2}
+  #xaxis <- opt$PCx
+  #yaxis<- opt$PCy
+  xaxis <- 1
+  yaxis <- 2
+  
+  # Read a txt file and convert gene names (first column) into indeces
+  my_data <- read.csv(input_counts, header = TRUE, row.names = 1, check.names = FALSE)
+  
+  # Read a text file and create indeces
+  annot <- read.csv(input_annot, header = TRUE, row.names = 1, check.names = FALSE )
+  #annot$batch[annot$batch == 1] <- "1 "
+  #annot$batch[annot$batch == 2] <- "2 "
+  #annot$batch[annot$batch == 3] <- "3 "
+  #annot$batch[annot$batch == 4] <- "4 "
+  
+  #annot$diagnosis[annot$diagnosis == 0] <- "Healthy"
+  #annot$diagnosis[annot$diagnosis == 1] <- "MDD"
+  #annot$diagnosis[annot$diagnosis == 2] <- "BD"
+  #annot$diagnosis[annot$diagnosis == 3] <- "BD"
+  
+  #annot$scid_diagnosis[annot$scid_diagnosis == 0] <- "Healthy"
+  #annot$scid_diagnosis[annot$scid_diagnosis == 1] <- "MDD"
+  #annot$scid_diagnosis[annot$scid_diagnosis == 2] <- "BD"
+  #annot$scid_diagnosis[annot$scid_diagnosis == 3] <- "BD"
+  
+  
+  
+  # Transpose data table
+  gene_df <- t(my_data)
+  
+  # Convert transposed table into a data frame
+  gene_df <- data.frame(gene_df)
+  
+  #print(gene_df)
+  
+  # Remove all non-expressed and 0-variance genes from data frame
+  express_df <- gene_df[,sapply(gene_df,function(x){!all(x==0)})]
+  
+  #print(express_df)
+  
+  express_final_df <- express_df[vapply(express_df, function(x) length(unique(x)) > 1, logical(1L))]
+
+  #print(express_final_df)
+    
+  # Scale data frame
+  scale_df <- scale(express_final_df)
+  
+  # Perform PCA analysis on scaled data and store
+  pca <- prcomp(scale_df)
+  
+  # Plot PCx vs PCy and convert pca data into a data frame
+  pca_df <- data.frame(pca$x)
+  
+  # Count number of columns in pca_df and store it
+  pre_ncol <- ncol(pca_df)
+  
+  # Add annotations to pca dataframe
+  pca_df <- data.frame(pca$x, annot)
+  
+  # Count number of columns in pca_df after adding annot and store
+  post_ncol <- ncol(pca_df)
+  
+  # Generate range of values to iterate through for plot labeling
+  label_ncol <- pre_ncol + 1
+  
+  # Generate Importance of Components and store it
+  components <- summary(pca)
+  
+  # Pull values of the two highest Proportion of Variance's
+  Prop_ofPCx <- components$importance[2, xaxis] * 100
+  Prop_ofPCy <- components$importance[2, yaxis] * 100
+  
+  # Convert Variance values into strings
+  Prop_ofPCx <- toString(Prop_ofPCx)
+  Prop_ofPCy <- toString(Prop_ofPCy)
+  
+  # Create x and y axis labels with variance %
+  x_label <- paste("PC",xaxis,",",' Var %: ', Prop_ofPCx)
+  y_label <- paste("PC",yaxis,",", ' Var %: ', Prop_ofPCy)
+  
+  # Capture the rotation matrix in a data frame
+  rotation_data <- data.frame(pca$rotation, variable=row.names(pca$rotation))
+  
+  PCxstring <- paste("PC",xaxis)
+  PCystring <- paste("PC", yaxis)
+  
+  # Sort PCx/PCy columns from G->L and store in new data frames
+  sorted_PCx <- rotation_data[order(rotation_data[,xaxis], decreasing=TRUE),, drop=FALSE]
+  sorted_PCy <- rotation_data[order(rotation_data[,yaxis], decreasing=TRUE),, drop=FALSE]
+  
+  # Store gene names and values for top 10 genes
+  PCx_names <- rownames(sorted_PCx[1:10,])
+  PCx_values <- sorted_PCx[1:10,xaxis]
+  PCx_10list <- paste(PCx_names, PCx_values, sep=': ')
+  PCy_names <- rownames(sorted_PCy[1:10,])
+  PCy_values <- sorted_PCy[1:10,yaxis]
+  PCy_10list <- paste(PCy_names, PCy_values, sep=': ')
+  
+  
+  sorted_PCxTen <- sorted_PCx[1:10,]
+  sorted_PCyTen <- sorted_PCy[1:10,]
+  pc_vector<- c(xaxis, yaxis)
+  
+  PCx_Ten <- sorted_PCxTen[pc_vector]
+  PCy_Ten <- sorted_PCyTen[pc_vector]
+  topTens <- rbind(PCx_Ten,PCy_Ten)
+  newdata <- pca$x
+  
+  
+  
+  #Output PCA plot(s) to pdf
+  #pdf("pca_plots.pdf")
+  png(file=paste( output_dir,'/', output_name, "_picture.png", sep=""))
+  #for (n in c(label_ncol:post_ncol))
+  
+  #print(colnames(pca_df))
+  #print(post_ncol)
+  #print(label_ncol)
+  
+  post_ncol <- grep("diagnosis", colnames(pca_df))
+  # Generate range of values to iterate through for plot labeling
+  label_ncol <- grep("batch", colnames(pca_df))
+  
+  #print(post_ncol)
+  #print(label_ncol)
+  
+  plot.new()
+  # WE NEED TO CHANGE THIS SO IT DOESN'T USE NUMERICAL VALUES FOR PCA_DF[,POST_NCOL]
+  {print(ggplot(pca_df, aes(x=pca_df[,xaxis], y=pca_df[,yaxis], color= pca_df[, label_ncol], shape = factor(pca_df[,post_ncol]))) # I added factor here
+                                            + geom_point(size = 2) + labs(x =x_label, y = y_label, color=colnames(pca_df[label_ncol]),shape=colnames(pca_df[post_ncol])))}
+  
+  #title(paste(output_name, " PCA Plot", sep=""))
+  
+  simpleCap <- function(x) {
+    s <- strsplit(x, " ")[[1]]
+    paste(toupper(substring(s, 1,1)), substring(s, 2),
+          sep="", collapse=" ")
+  }
+  
+  # Capitalize Function
+  capitalize <- function(x) {
+    substr(x, 1, 1) <- toupper(substr(x, 1, 1))
+    x
+  }
+  
+  # Generate the Plot title
+  
+  name = paste(sapply(paste(unlist(strsplit(output_name, "[_]")), sep=" "), simpleCap), collapse=" ")
+  plotTitle = paste(capitalize(unlist(strsplit(name, "_"))), collapse= " ")
+  
+  
+  title(paste( plotTitle, " PCA Plot", sep=""))
+  
+  #print(ggplot(pca_df, aes(x=pca_df[,xaxis], y=pca_df[,yaxis], color= pca_df[, label_ncol], shape = factor(pca_df[,post_ncol]))) # I added factor here
+  #       + geom_point(size = 2) + labs(x =x_label, y = y_label, color=colnames(pca_df[label_ncol]),shape=colnames(pca_df[post_ncol]),
+  #                                     caption= paste("PCA is a dimensionality reduction technique that emphasizes the variation in the data
+  #                                                    and allows us to see patterns in the data.X axis represents the first principal
+  #                                                    component and its contributor rate. Y axis represents the second component and
+  #                                                    its contributor rate. Points represent each sample.Sample colors and shapes are
+  #                                                    according to a group the sample belongs to.")))}
+  
+  
+  
+  dev.off()
+
+    
+}
+
+
+
+```
+
+Let's test PCA
+
+```{r}
+
+# turn batch into a factor
+PCA(input_counts, input_metadata, ".", "dataset_1_stuff")
+
+```
+
+Now let's do T-SNE
+
+```{r}
+
+
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+
+BiocManager::install("M3C")
+
+library(M3C)
+
+length(unique(colnames(gene_counts)))
+length((colnames(gene_counts)))
+
+png('tsne_plot.png')
+tsne(t(gene_counts), labels=as.factor(annot$batch))
+dev.off()
+#tsne(gene_counts, check_duplicates = FALSE)#,labels=as.factor(pollen$celltypes))
+
+
+
+```
+
+```{r}
+
+#gene_counts
+#annot
+
+
+
+training_set <- gene_counts
+
+#print(training_set)
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+
+BiocManager::install("M3C")
+
+
+
+training_set$batch <- as.factor(annot$label)
+dim(training_set)
+
+# shrinking the size for the time limit
+numTrain <- 1000
+set.seed(1)
+rows <- sample(1:nrow(training_set), numTrain)
+train <- training_set[rows,]
+
+train <- t(train)
+
+# using tsne
+set.seed(1) # for reproducibility
+tsne <- Rtsne(train[,-1], dims = 2, perplexity=30, verbose=TRUE, max_iter = 500, check_duplicates=FALSE)
+
+
+# visualizing
+colors = rainbow(length(unique(train$batch)))
+names(colors) = unique(train$batch)
+par(mgp=c(2.5,1,0))
+plot(tsne$Y, t='n', main="tSNE", xlab="tSNE dimension 1", ylab="tSNE dimension 2", "cex.main"=2, "cex.lab"=1.5)
+text(tsne$Y, labels=train$batch, col=colors[train$batch])
+
+
+
+```
+
+Boxplot stuff
+
+```{r}
+
+# get list of samples for all batchs
+# for each batch variable
+  # get list of samples for this batch
+  # pull out their gene expression values
+  # get the means and put it in a list
+  # add it to a list
+  # add batch x to names
+
+boxplot_data = NULL
+
+
+for (x in unique(annot$batch))
+{
+  batchX = annot[annot$batch == x,]
+  #print(batchX)
+
+  rownames(batchX)
+  
+  gene_counts_subset <- t(gene_counts[rownames(batchX), ])
+    
+  #print(dim(gene_counts_subset))
+  
+  means = rowMeans(gene_counts_subset)
+  
+  mean_values <- as.vector(data.frame(means = rowMeans(gene_counts_subset))$means)
+  
+  batch_name = paste(c("batch_", x), collapse="", sep="")
+  
+  if(is.null(boxplot_data))
+  {
+    #print('first time')
+    boxplot_data = data.frame("mean" = mean_values, "batch" = rep(x, each=length(mean_values)))
+  }
+  else
+  {
+    #print('not first time')
+    new_data = data.frame("mean" = mean_values, "batch" = rep(x, each=length(mean_values)))
+    #print(dim(new_data))
+    
+    boxplot_data = rbind(boxplot_data, new_data)
+  }
+  #print(dim(boxplot_data))
+  
+}
+
+
+#print(boxplot)data
+
+  png('comparative_boxplot.png')
+
+
+ggplot(boxplot_data, aes(x = factor(batch), y = mean, fill=factor(batch))) +
+  geom_boxplot() + 
+  labs(title = "Comparative Boxplot", x = "Batch", y = "Mean Gene Expression", fill = "Batch")
+
+dev.off()
+
+#boxplot(mpg~cyl,data=mtcars, main="Car Milage Data",
+#   xlab="Number of Cylinders", ylab="Miles Per Gallon")
+
+
+
+```
+
+```{r}
+
+dataset_name = "combined_dataset1"
+pca_path = 'C:/Users/Roman/Documents/Work/Depression_and_Immunology/beast/dataset_1_stuff_picture.png'
+pca_path = 'C:/Users/Roman/Documents/Work/Depression_and_Immunology/beast/dataset_1_stuff_picture.png'
+pca_path = 'C:/Users/Roman/Documents/Work/Depression_and_Immunology/beast/dataset_1_stuff_picture.png'
+html_string = 
+paste('
+        <html>
+        <head>
+            <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/kognise/water.css@latest/dist/light.min.css">
+
+            <style>body{ margin:0 100; background:whitesmoke; }</style>
+        </head>
+        <body>
+            <h1>Batch Correction Report for ', dataset_name, '</h1>
+
+
+            <!-- *** Section 3 *** --->
+            <h2>Principal Component Analysis</h2>
+             <iframe width="1000" height="550" frameborder="0" seamless="seamless" scrolling="no" \
+src="', pca_path, '" ></iframe> <p>Principal component analysis (PCA) is a technique used to emphasize variation and bring out strong patterns in a dataset. Its often used to make data easy to explore and visualize..</p>
+            
+             <h2>kBET - K-Nearest Neighbour Batch Effect test</h2>
+             <iframe width="1000" height="550" frameborder="0" seamless="seamless" scrolling="no" \
+src="', kbet_plot_path, '"></iframe> <p>The K-Nearest Neighbor Batch Effect Test provides a test for batch effects in high-dimensional single-cell RNA sequencing data. It evaluates the accordance of replicates based on Pearsons chi^2 test. First, the algorithm creates k-nearest neighbour matrix and choses 10% of the samples to check the batch label distribution in its neighbourhood. If the local batch label distribution is sufficiently similar to the global batch label distribution, the chi^2-test does not reject the null hypothesis (that is "all batches are well-mixed"). The neighbourhood size k is fixed for all tests. Next, the test returns a binary result for each of the tested samples. Finally, the result of kBET is the average test rejection rate. The lower the test result, the less bias is introduced by the batch effect. kBET is very sensitive to any kind of bias. If kBET returns an average rejection rate of 1 for your batch-corrected data, you may also consider to compute the average silhouette width and PCA-based batch-effect measures to explore the degree of the batch effect. Learn more about kBET and batch effect correction in our publication.
+.</p>
+    
+            <!-- *** Section 1 *** --->
+            <h2>T-Stochastic Neighbor Embedding (T-SNE)</h2>
+             <iframe width="1000" height="550" frameborder="0" seamless="seamless" scrolling="no" \
+src="' , tsne_path, '"></iframe>
+            <p>T-SNE is a t-distributed stochastic neighbor estimated.</p>
+            
+            <!-- *** Section 2 *** --->
+            <h2>Comparative BoxPlot</h2>
+             <iframe width="1000" height="550" frameborder="0" seamless="seamless" scrolling="no" \
+src="',  boxplot_path, '"></iframe>
+            <p>The comparative boxplot shows the difference in the distributions between the different batches. If any of the boxes differ significanlty then there is a difference.</p>
+
+
+
+        </body>
+    </html>', sep="")
+
+html_report <- file("batch_correction_report_R.html")
+writeLines(c(html_string), html_report)
+close(html_report)
+
+
+
+```
+          
+
+            
+        </body>
+    </html>
+    '
+    f = open(output_name, 'w')
+    f.write(html_string)
+    f.close()
+
+    # should we automatically add .html to the end if they don't specify
+    # yeah probably
+
+    # get the image files to generate and stuff then read them in in this function and then use them to save the data
+    # internally within the package.
+
+
+
 
 ```
