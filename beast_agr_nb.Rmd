@@ -1,0 +1,58 @@
+
+
+```{r}
+
+# take in a folder as input
+log_folder = "C:/Users/Roman/Documents/Work/Depression_and_Immunology/beast/log_files"
+log_files <- list.files(log_folder)
+
+for(log_file in log_files)
+{
+  print(log_file)
+  log_file_path <- file.path(log_folder, log_file)
+  con <- file(log_file_path, "r")
+  magic_word <- readLines(con, n = 1)
+  kbet_expected <- readLines(con, n = 1)
+  kbet_observed <- readLines(con, n = 1)
+  kbet_signif   <- readLines(con, n = 1)
+  tsne_path     <- readLines(con, n = 1)
+  pca_path      <- readLines(con, n = 1)
+  print('boxplot DATA')
+  boxplot_data <- read.csv(log_file_path, check.names=FALSE, skip = 6)
+  print('boxplot DATA')
+  print(boxplot_data$mean)
+  
+  # one thing we can do is get the max from the boxplot data, then add that to every subsequent one so it treats each one as different... but i'm not too sure
+
+  print(line)
+}
+# get a list of files from this folder
+# iterate through the list of files
+# read in the log files
+
+
+```
+generateLogFile <- function(dataset_name, kbet_results, tsne_path, pca_path, boxplot_results)
+{
+  # create a file
+  # write the kbet data to the file
+  # perhaps i should write in the base64 of the t_sne, and pca so they can tile it later
+  # write the boxplot data to the file
+  kbet_data <- as.data.frame(kbet_results[1])
+  kbet_data
+  kbet_expected <- kbet_data['kBET.expected'][1,]
+  kbet_observed <- kbet_data['kBET.observed'][1,]
+  kbet_signif <- kbet_data['kBET.signif'][1,]
+  kbet_log <- c(kbet_expected, kbet_observed, kbet_signif)
+  boxplot_data <- boxplot_results[1]
+  boxplot_df <- data.frame(boxplot_data)
+  boxplot_log <- format_delim(boxplot_df, delim=',')
+  
+  
+  log_data <- c('BATCH2020', kbet_log, tsne_path, pca_path, boxplot_log)
+  
+  log_file <- file("dataset1_log.beast")
+  writeLines(c(log_data), log_file)
+  close(log_file)
+  
+}
