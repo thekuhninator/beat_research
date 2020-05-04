@@ -8,6 +8,7 @@ library(devtools)
 library(kBET)
 #library(bapred)
 library(ggplot2)
+library(knitr)
 library(dplyr)
 library(gplots)
 library(getopt)
@@ -412,6 +413,11 @@ generateLogFile <- function(dataset_name, kbet_results, tsne_path, pca_path, box
   
 }
 
+toBase64 <- function(image_file) {
+  uri=image_uri(image_file)
+  #file.remove(file)
+}
+
 # get all the results
 kbet_results <- kbet(gene_counts, annot, output_dir, dataset_name)
 tsne_path <- tsne_batch(gene_counts, annot, output_dir, dataset_name)
@@ -421,6 +427,11 @@ boxplot_data <- boxplot_results[1]
 boxplot_path <- boxplot_results[2]
 kbet_data <- kbet_results[1]
 kbet_path <- kbet_results[2]
+
+# get all the base64 data of images
+tsne_base64 <- toBase64(tsne_path)
+pca_base64  <- toBase64(pca_path)
+box_base64  <- toBase64(boxplot_path)
 
 # write them to an html report
 generate_report(dataset_name, kbet_results, pca_path, tsne_path, boxplot_path)

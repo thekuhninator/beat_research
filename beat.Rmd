@@ -14,9 +14,10 @@ install.packages('dplyr')
 install.packages('gplots')
 install.packages('getopt')
 install.packages('sva')
+#install.packages('base64enc')
 install.packages('bapred')
 install.packages('readr')
-
+install.packages('matrixStats')
 # install kBEt
 install_github('theislab/kBET')
 # install biocmanager
@@ -34,6 +35,8 @@ BiocManager::install("M3C")
 
 library(devtools)
 library(kBET)
+library(knitr)
+#library(base64enc)
 #library(bapred)
 library(ggplot2)
 library(dplyr)
@@ -41,6 +44,7 @@ library(gplots)
 library(getopt)
 library(M3C)
 library(readr)
+library(matrixStats)
 #library(Rtsne)
 
 ```
@@ -309,9 +313,10 @@ Now let's do T-SNE
 tsne_batch <- function(gene_counts, annot, ouput_dir, output_name)
 {
   file_name <- paste(file.path(output_dir, output_name), '.png', sep="")
-  png(file_name)
-  print(tsne(t(gene_counts), labels=as.factor(annot$batch)), legendtitle ="Batch")
-  dev.off()
+  #png(file_name)
+  g <- tsne(t(gene_counts), labels=as.factor(annot$batch), legendtitle ="Batch")
+  print(g)
+  #dev.off()
   return(file_name)
 }
 
@@ -320,8 +325,8 @@ tsne_batch <- function(gene_counts, annot, ouput_dir, output_name)
 ```{r}
 
 # let's run t-sne
-tsne_path <- tsne_batch(gene_counts, annot, '.', 'tsne_plot')
-tsne_path
+#sne_path <- tsne_batch(gene_counts, annot, '.', 'tsne_plot')
+#tsne_path
 ```
 
 Boxplot stuff
@@ -397,6 +402,63 @@ grouped_boxplot <- function(gene_counts, annot, output_dir, output_name)
 
 ```
 
+Get HVGs
+
+```{r}
+
+
+getHvgs <- function(gene_counts, annot)
+{
+  hvgs <- NULL
+
+  # let's iterate through all the batches
+  for (batch_i in unique(annot$batch))
+  {
+
+    batch_counts <- t(gene_counts[rownames(annot[annot$batch == batch_i,]),]);
+    batch_counts <- as.data.frame(cbind(batch_counts, 'var'=rowVars(batch_counts)))
+    top_percent <- .10
+    n_genes <- dim(batch_counts)[1] * top_percent
+    top_varying <- rownames(head(batch_counts[order(batch_counts$var,decreasing=T),],n_genes))
+    
+    if(is.null(hvgs))
+    {
+      hvgs <- top_varying
+    }
+    else
+    {
+      hvgs <- Reduce(intersect, list(hvgs, top_varying))
+    }
+    print('length of hvgs')
+    print(length(hvgs))
+    print('legnth of top varying')
+    print(length(top_varying))
+    
+    return(hvgs)
+    
+
+    
+    # let's get the top 10 percent genes with the highest variance.
+
+
+  }
+  # lets add them to a list
+  # let's get the intersection of those genes.
+}
+
+
+
+#batch_counts <- t(gene_counts[rownames(annot[annot$batch == batch_i,]),]);
+#batch_counts <- as.data.frame(cbind(batch_counts, 'var'=rowVars(batch_counts)))
+#top_percent <- .10
+#n_genes <- dim(batch_counts)[1] * top_percent
+#top_varying <- rownames(head(batch_counts[order(batch_counts$var,decreasing=T),],n_genes))
+#t2 <- c("RPS4Y1", "KDM5D")
+#Reduce(intersect, list(top_varying, t2))
+
+```
+
+
 ```{r}
 
 boxplot_results <- grouped_boxplot(gene_counts, annot, '.', 'dataset_test');
@@ -468,19 +530,21 @@ generate_report <- function(dataset_name, kbet_results, pca_path, tsne_path, box
 
 
   Log file format:
-  BATCH2020
-  dataset_name
-  kbet_acceptance_rate
-  tsne_path
-  pca_path
-  boxplot_results
-  number of genes
-  list of gene averages
+  1 BATCH2020
+  2 dataset_name
+  3 original_dataset?
+  4 kbet_acceptance_rate
+  5 tsne_path
+  6 pca_path
+  7 boxplot_results
+  8 number of hvgs
+  9... list of hvgs
+  8 + number of hvgs: list of gene averages
   
 
 ```{r}
 
-generateLogFile <- function(dataset_name, kbet_results, tsne_path, pca_path, boxplot_results)
+generateLogFile <- function(dataset_name, kbet_results, tsne_path, pca_path, boxplot_results, hvg_results)
 {
   # create a file
   # write the kbet data to the file
@@ -495,9 +559,11 @@ generateLogFile <- function(dataset_name, kbet_results, tsne_path, pca_path, box
   boxplot_data <- boxplot_results[1]
   boxplot_df <- data.frame(boxplot_data)
   boxplot_log <- format_delim(boxplot_df, delim=',')
+  num_hvgs <- length(hvg_results)
+  hvg_list <- hvg_results
   
   
-  log_data <- c('BATCH2020', kbet_log, tsne_path, pca_path, boxplot_log)
+  log_data <- c('BATCH2020', kbet_log, tsne_path, pca_path, num_hvgs, hvg_list, boxplot_log)
   
   log_file <- file("dataset1_log.beast")
   writeLines(c(log_data), log_file)
@@ -544,6 +610,7 @@ boxplot_data <- boxplot_results[1]
 boxplot_path <- boxplot_results[2]
 kbet_data <- kbet_results[1]
 kbet_path <- kbet_results[2]
+hvgs <- getHvgs(gene_counts, annot)
 
 ```
 
@@ -554,7 +621,21 @@ Generate html report and log file
 # write them to an html report
 generate_report('dataset_test', kbet_results, pca_path, tsne_path, boxplot_path)
 # write them to the log file
-generateLogFile('dataset_1', kbet_results, tsne_path, pca_path, boxplot_results)
+generateLogFile('dataset_1', kbet_results, tsne_path, pca_path, boxplot_results, hvgs)
 
 
 ```
+
+
+```{r}
+
+printImageURI <- function(image_file) {
+  image_file <- "C:/Users/Roman/Documents/Work/Depression_and_Immunology/beat/output/dataset_1_comparative_boxplot.png"
+  uri=image_uri(image_file)
+  #file.remove(file)
+}
+
+
+
+```
+
