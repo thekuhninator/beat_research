@@ -6,32 +6,44 @@
 
 library(devtools)
 library(kBET)
+library(knitr)
+#library(base64enc)
 #library(bapred)
 library(ggplot2)
-library(knitr)
 library(dplyr)
 library(gplots)
 library(getopt)
 library(M3C)
 library(readr)
+library(matrixStats)
 #library(Rtsne)
 
 
 #
 # necessary variables
 #
+
+# you can add in descirption for this
 spec = matrix(c(
   'input_counts', 'g', 1, "character",
   'input_annot', 'a', 1, "character",
   'output_dir','o', 1, "character",
-  'dataset_name','d',1,"character"
+  'dataset_name','d',1,"character",
+  'uncorrected','u',2,"logical",
+  'factor_of_interest', 'f', '2', 'character'
 ), byrow=TRUE, ncol=4)
 opt = getopt(spec)
+
+if ( is.null(opt$uncorrected    ) ) { opt$uncorrected    = FALSE     }
+if ( is.null(opt$factor_of_interest    ) ) { opt$factor_of_interest    = NULL     }
+
 
 input_counts <- opt$input_counts
 input_metadata <- opt$input_annot
 output_dir <- opt$output_dir
 dataset_name <- opt$dataset_name
+original <- opt$uncorrected
+factor_of_interest <- opt$factor_of_interest
 
 #input_counts = "C:/Users/Roman/Documents/Work/Depression_and_Immunology/England_Research/Data_No_Filter_Final/dataset_1/toups_unfiltered_gene_counts.csv"
 #input_metadata = "C:/Users/Roman/Documents/Work/Depression_and_Immunology/England_Research/Data_No_Filter_Final/dataset_1/toups_unfiltered_metadata.csv"
@@ -50,7 +62,7 @@ annot <- read.csv(input_metadata, header = TRUE, row.names = 1, check.names = FA
 # Input: Takes in gene conts data table, metadata data table, a foi, output_directory, and output name
 # Ouptut: returns a dataframe containing data regarding the kBET test
 
-kbet <- function(gene_counts, annot, output_dir, dataset_name) 
+kbet <- function(gene_counts, annot, output_dir, output_name) 
 {
   batch = annot$batch
   # get the factor of interest (not currently used)
@@ -76,12 +88,10 @@ kbet <- function(gene_counts, annot, output_dir, dataset_name)
   
   # Generate the Plot title
   # plotTitle = paste(capitalize(unlist(strsplit(name, "_"))), collapse= " ")
+  plotTitle = paste(output_name, " kBET Plot", sep="")
   
-  
-  plotTitle = paste(dataset_name, " kBET Plot", sep="")
-  file_name <- paste(dataset_name, '_kbet_plot.png', sep="")
-  output_file_path <- file.path(output_dir, file_name)
-  png(output_file_path)
+  file_path <- paste( file.path(output_dir, output_name), "_kbet_plot.png", sep="")
+  png(file=file_path)
   
   batch.estimate <- kBET(data, batch, plot=FALSE)
   
@@ -105,20 +115,24 @@ kbet <- function(gene_counts, annot, output_dir, dataset_name)
   #results['skewdiv'] = skewdivVal
   #results['kldist'] = kldistVal
   
-  return(list(results, output_file_path))
+  return( list("path" = file_path, "results" = results))
   
 }
 
+simpleCap <- function(x) {
+  s <- strsplit(x, " ")[[1]]
+  paste(toupper(substring(s, 1,1)), substring(s, 2),
+        sep="", collapse=" ")
+}
 
-#!/usr/bin/Rscript
-# ---
-# title: "Shakeel's PCA script"
-# author: Shakeel Jessa
-# date: 18/Jun/2018
-# output: pdf_document
-# ---
+# Capitalize Function
+capitalize <- function(x) {
+  substr(x, 1, 1) <- toupper(substr(x, 1, 1))
+  x
+}
 
-PCA <- function(gene_counts, annot, output_dir, dataset_name) {
+# author shakeel jessa
+pca <- function(gene_counts, annot, output_dir, output_name, foi=NULL) {
   
   
   #if ( is.null(opt$PCx ) ) { opt$PCx = 1}
@@ -208,60 +222,73 @@ PCA <- function(gene_counts, annot, output_dir, dataset_name) {
   newdata <- pca$x
   
   # output PCA
-  file_name <- paste(dataset_name, '_pca_plot.png', sep="")
-  output_file_path <- file.path(output_dir, file_name)
-  png(file=output_file_path)
+  file_path <- paste( file.path(output_dir, output_name), "_pca_plot.png", sep="")
+  png(file=file_path)
   
-  post_ncol <- grep("diagnosis", colnames(pca_df))
+  name = paste(sapply(paste(unlist(strsplit(output_name, "[_]")), sep=" "), simpleCap), collapse=" ")
+  plotTitle = paste(capitalize(unlist(strsplit(name, "_"))), collapse= " ")
+  plotTitle <- paste( plotTitle, " PCA Plot", sep="")
+  
   # Generate range of values to iterate through for plot labeling
   label_ncol <- grep("batch", colnames(pca_df))
   
   plot.new()
-  print(ggplot(pca_df, aes(x=pca_df[,xaxis], y=pca_df[,yaxis], color= pca_df[, label_ncol], shape = factor(pca_df[,post_ncol]))) # I added factor here
-        + geom_point(size = 2) + labs(x =x_label, y = y_label, color=colnames(pca_df[label_ncol]),shape=colnames(pca_df[post_ncol])))
   
-  simpleCap <- function(x) {
-    s <- strsplit(x, " ")[[1]]
-    paste(toupper(substring(s, 1,1)), substring(s, 2),
-          sep="", collapse=" ")
+  if(is.null(foi))
+  {
+    g <- ggplot(pca_df, aes(x=PC1, y=PC2, color= pca_df[, label_ncol])) + 
+      geom_point(size = 2) + labs(x =x_label, y = y_label, color=colnames(pca_df[label_ncol])) +
+      ggtitle(plotTitle) + 
+      theme(plot.title   = element_text(size=19, hjust = .5),  
+            axis.title.y = element_text(size = 15), 
+            axis.title.x = element_text(size = 15), 
+            legend.title = element_text(size=14), 
+            axis.text.x =  element_text(size=13),
+            axis.text.y =  element_text(size=13))
   }
-  
-  # Capitalize Function
-  capitalize <- function(x) {
-    substr(x, 1, 1) <- toupper(substr(x, 1, 1))
-    x
+  else
+  {
+    post_ncol <- grep(foi, colnames(pca_df))
+    g <- ggplot(pca_df, aes(x=pca_df[,xaxis], y=pca_df[,yaxis], color= pca_df[, label_ncol], shape = factor(pca_df[,post_ncol]))) + 
+      geom_point(size = 2) + 
+      labs(x =x_label, y = y_label, color=colnames(pca_df[label_ncol]), shape=colnames(pca_df[post_ncol])) +
+      ggtitle(plotTitle) + 
+      theme(plot.title   = element_text(size=19, hjust = .5),  
+            axis.title.y = element_text(size = 15), 
+            axis.title.x = element_text(size = 15), 
+            legend.title = element_text(size=14), 
+            axis.text.x =  element_text(size=13),
+            axis.text.y =  element_text(size=13))
+    
   }
+  print(g);
   
-  # Generate the Plot title
-  name = paste(sapply(paste(unlist(strsplit(dataset_name, "[_]")), sep=" "), simpleCap), collapse=" ")
-  plotTitle = paste(capitalize(unlist(strsplit(name, "_"))), collapse= " ")
-  
-  
-  title(paste( plotTitle, " PCA Plot", sep=""))
-  
-  #print(ggplot(pca_df, aes(x=pca_df[,xaxis], y=pca_df[,yaxis], color= pca_df[, label_ncol], shape = factor(pca_df[,post_ncol]))) # I added factor here
-  #       + geom_point(size = 2) + labs(x =x_label, y = y_label, color=colnames(pca_df[label_ncol]),shape=colnames(pca_df[post_ncol]),
-  #                                     caption= paste("PCA is a dimensionality reduction technique that emphasizes the variation in the data
-  #                                                    and allows us to see patterns in the data.X axis represents the first principal
-  #                                                    component and its contributor rate. Y axis represents the second component and
-  #                                                    its contributor rate. Points represent each sample.Sample colors and shapes are
-  #                                                    according to a group the sample belongs to.")))}
   
   dev.off()
   
-  return(output_file_path)
-
+  return( list("path" = file_path, "plot" = g))
+  
 }
 
 
-tsne_batch <- function(gene_counts, annot, ouput_dir, dataset_name)
+tsne_batch <- function(gene_counts, annot, ouput_dir, output_name)
 {
-  file_name <- paste(dataset_name, '_tsne_plot.png', sep="")
-  output_file_path <- file.path(output_dir, file_name)
-  png(output_file_path)
-  print(tsne(t(gene_counts), labels=as.factor(annot$batch)), legendtitle ="Batch")
+  # output PCA
+  file_path <- paste( file.path(output_dir, output_name), "_tsne_plot.png", sep="")
+  png(file=file_path)
+  
+  name = paste(sapply(paste(unlist(strsplit(output_name, "[_]")), sep=" "), simpleCap), collapse=" ")
+  plotTitle = paste(capitalize(unlist(strsplit(name, "_"))), collapse= " ")
+  plotTitle <- paste( plotTitle, " T-SNE Plot", sep="")
+  
+  g <- tsne(t(gene_counts), labels=as.factor(annot$batch), legendtitle ="Batch") + 
+    ggtitle(plotTitle) +
+    theme(plot.title = element_text(size=20, hjust = .5))
+  #print(typeof(g))
+  print(g)
   dev.off()
-  return(output_file_path)
+  
+  return (list("path" = file_path, "plot" = g))
 }
 
 grouped_boxplot <- function(gene_counts, annot, output_dir, dataset_name) 
@@ -320,22 +347,51 @@ grouped_boxplot <- function(gene_counts, annot, output_dir, dataset_name)
   
   g <- ggplot(boxplot_data, aes(x = factor(batch), y = mean, fill=factor(batch))) +
     geom_boxplot() + 
-    labs(title = "Comparative Boxplot", x = "Batch", y = "Mean Gene Expression", fill = "Batch")
+    labs(title = "Comparative Boxplot", x = "Batch", y = "Mean Gene Expression", fill = "Batch") + 
+    theme(plot.title   = element_text(size=19, hjust = .5),  
+          axis.title.y = element_text(size = 15), 
+          axis.title.x = element_text(size = 15), 
+          legend.title = element_text(size=14), 
+          axis.text.x =  element_text(size=16),
+          axis.text.y =  element_text(size=16))
+  
   
   print(g)
   
   dev.off()
   
-  return(list(boxplot_data, output_file_name))
-
+  return (list( "path" = output_file_name, "data" = boxplot_data))
 }
 
-generate_report <- function(dataset_name, kbet_results, pca_path, tsne_path, boxpot_path)
+getHvgs <- function(gene_counts, annot)
+{
+  hvgs <- NULL
+  
+  # let's iterate through all the batches
+  for (batch_i in unique(annot$batch))
+  {
+    batch_counts <- t(gene_counts[rownames(annot[annot$batch == batch_i,]),]);
+    batch_counts <- as.data.frame(cbind(batch_counts, 'var'=rowVars(batch_counts)))
+    top_percent <- .10
+    n_genes <- dim(batch_counts)[1] * top_percent
+    top_varying <- rownames(head(batch_counts[order(batch_counts$var,decreasing=T),],n_genes))
+    
+    if(is.null(hvgs))
+    {
+      hvgs <- top_varying
+    }
+    else
+    {
+      hvgs <- Reduce(intersect, list(hvgs, top_varying))
+    }
+
+  }
+  return (hvgs)
+}
+
+generate_report <- function(dataset_name, kbet_src, pca_src, tsne_src, boxplot_src)
 {
   
-  kbet_data <- kbet_results[1]
-  kbet_plot_path <- kbet_results[2]
-  boxplot_path <- boxplot_results[2]
   #dataset_name = "combined_dataset1"
   #pca_path = 'C:/Users/Roman/Documents/Work/Depression_and_Immunology/beast/dataset_1_stuff_picture.png'
   #pca_path = 'C:/Users/Roman/Documents/Work/Depression_and_Immunology/beast/dataset_1_stuff_picture.png'
@@ -355,23 +411,23 @@ generate_report <- function(dataset_name, kbet_results, pca_path, tsne_path, box
               <!-- *** Section 3 *** --->
               <h2>Principal Component Analysis</h2>
                <iframe width="1000" height="550" frameborder="0" seamless="seamless" scrolling="no" \
-  src="', pca_path, '" ></iframe> <p>Principal component analysis (PCA) is a technique used to emphasize variation and bring out strong patterns in a dataset. Its often used to make data easy to explore and visualize..</p>
+  src="', pca_src, '" ></iframe> <p>Principal component analysis (PCA) is a technique used to emphasize variation and bring out strong patterns in a dataset. Its often used to make data easy to explore and visualize..</p>
               
                <h2>kBET - K-Nearest Neighbour Batch Effect test</h2>
                <iframe width="1000" height="550" frameborder="0" seamless="seamless" scrolling="no" \
-  src="', kbet_plot_path, '"></iframe> <p>The K-Nearest Neighbor Batch Effect Test provides a test for batch effects in high-dimensional single-cell RNA sequencing data. It evaluates the accordance of replicates based on Pearsons chi^2 test. First, the algorithm creates k-nearest neighbour matrix and choses 10% of the samples to check the batch label distribution in its neighbourhood. If the local batch label distribution is sufficiently similar to the global batch label distribution, the chi^2-test does not reject the null hypothesis (that is "all batches are well-mixed"). The neighbourhood size k is fixed for all tests. Next, the test returns a binary result for each of the tested samples. Finally, the result of kBET is the average test rejection rate. The lower the test result, the less bias is introduced by the batch effect. kBET is very sensitive to any kind of bias. If kBET returns an average rejection rate of 1 for your batch-corrected data, you may also consider to compute the average silhouette width and PCA-based batch-effect measures to explore the degree of the batch effect. Learn more about kBET and batch effect correction in our publication.
+  src="', kbet_src, '"></iframe> <p>The K-Nearest Neighbor Batch Effect Test provides a test for batch effects in high-dimensional single-cell RNA sequencing data. It evaluates the accordance of replicates based on Pearsons chi^2 test. First, the algorithm creates k-nearest neighbour matrix and choses 10% of the samples to check the batch label distribution in its neighbourhood. If the local batch label distribution is sufficiently similar to the global batch label distribution, the chi^2-test does not reject the null hypothesis (that is "all batches are well-mixed"). The neighbourhood size k is fixed for all tests. Next, the test returns a binary result for each of the tested samples. Finally, the result of kBET is the average test rejection rate. The lower the test result, the less bias is introduced by the batch effect. kBET is very sensitive to any kind of bias. If kBET returns an average rejection rate of 1 for your batch-corrected data, you may also consider to compute the average silhouette width and PCA-based batch-effect measures to explore the degree of the batch effect. Learn more about kBET and batch effect correction in our publication.
   .</p>
       
               <!-- *** Section 1 *** --->
               <h2>T-Stochastic Neighbor Embedding (T-SNE)</h2>
                <iframe width="1000" height="550" frameborder="0" seamless="seamless" scrolling="no" \
-  src="' , tsne_path, '"></iframe>
+  src="' , tsne_src, '"></iframe>
               <p>T-SNE is a t-distributed stochastic neighbor estimated.</p>
               
               <!-- *** Section 2 *** --->
               <h2>Comparative BoxPlot</h2>
                <iframe width="1000" height="550" frameborder="0" seamless="seamless" scrolling="no" \
-  src="',  boxplot_path, '"></iframe>
+  src="',  boxplot_src, '"></iframe>
               <p>The comparative boxplot shows the difference in the distributions between the different batches. If any of the boxes differ significanlty then there is a difference.</p>
   
   
@@ -379,61 +435,61 @@ generate_report <- function(dataset_name, kbet_results, pca_path, tsne_path, box
           </body>
       </html>', sep="")
   
-  file_name <- paste(dataset_name, '_batch_correction_report.html')
+  file_name <- paste(dataset_name, '_batch_correction_report.html', sep="")
   output_file_path <- file.path(output_dir, file_name)
   html_report <- file(output_file_path)
   writeLines(c(html_string), html_report)
   close(html_report)
 }
 
-generateLogFile <- function(dataset_name, kbet_results, tsne_path, pca_path, boxplot_results)
+generateLogFile <- function(dataset_name, original, kbet_results, tsne_plot, pca_plot, boxplot_results, hvgs)
 {
-  # create a file
-  # write the kbet data to the file
-  # perhaps i should write in the base64 of the t_sne, and pca so they can tile it later
-  # write the boxplot data to the file
-  kbet_data <- as.data.frame(kbet_results[1])
-  kbet_data
-  kbet_expected <- kbet_data['kBET.expected'][1,]
-  kbet_observed <- kbet_data['kBET.observed'][1,]
-  kbet_signif <- kbet_data['kBET.signif'][1,]
-  kbet_log <- c(kbet_expected, kbet_observed, kbet_signif)
-  boxplot_data <- boxplot_results[1]
-  boxplot_df <- data.frame(boxplot_data)
-  boxplot_log <- format_delim(boxplot_df, delim=',')
-  
-  
-  log_data <- c('BATCH2020', dataset_name, kbet_log, tsne_path, pca_path, boxplot_log)
-  
-  file_name <- paste(dataset_name, '_beast_log_file.beast')
+
+  file_name <- paste(dataset_name, '_beat_log.beat',sep="")
   output_file_path <- file.path(output_dir, file_name)
-  log_file <- file(output_file_path)
-  writeLines(c(log_data), log_file)
-  close(log_file)
-  
+  save(dataset_name, original, kbet_results, tsne_plot, boxplot_data, pca_plot, hvgs, file=output_file_path)
 }
 
 toBase64 <- function(image_file) {
   uri=image_uri(image_file)
-  #file.remove(file)
 }
 
 # get all the results
 kbet_results <- kbet(gene_counts, annot, output_dir, dataset_name)
-tsne_path <- tsne_batch(gene_counts, annot, output_dir, dataset_name)
-pca_path <- PCA(t(gene_counts), annot, output_dir, dataset_name)
+tsne_results <- tsne_batch(gene_counts, annot, output_dir, dataset_name)
+pca_results <- pca(t(gene_counts), annot, output_dir, dataset_name, factor_of_interest)
 boxplot_results <- grouped_boxplot(gene_counts, annot, output_dir, dataset_name);
-boxplot_data <- boxplot_results[1]
-boxplot_path <- boxplot_results[2]
-kbet_data <- kbet_results[1]
-kbet_path <- kbet_results[2]
+hvgs <- getHvgs(gene_counts, annot)
+
+tsne_path <- tsne_results$path
+tsne_plot <- tsne_results$plot
+pca_path  <- pca_results$path
+pca_plot  <- pca_results$plot
+kbet_path <- kbet_results$path
+kbet_data <- kbet_results$results
+boxplot_path <- boxplot_results$path
+boxplot_data <- boxplot_results$data
+
+print('kbet_64')
+print(kbet_path)
+kbet_base64     <- toBase64(kbet_path)
+print('pca')
+print(pca_path)
+pca_base64      <- toBase64(pca_path)
+print('tsne')
+print(tsne_path)
+tsne_base64     <- toBase64(tsne_path)
+print('boxplot')
+print(boxplot_path)
+boxplot_base64  <- toBase64(boxplot_path)
+
 
 # get all the base64 data of images
-tsne_base64 <- toBase64(tsne_path)
-pca_base64  <- toBase64(pca_path)
-box_base64  <- toBase64(boxplot_path)
+#tsne_base64 <- toBase64(tsne_path)
+#pca_base64  <- toBase64(pca_path)
+#box_base64  <- toBase64(boxplot_path)
 
 # write them to an html report
-generate_report(dataset_name, kbet_results, pca_path, tsne_path, boxplot_path)
+generate_report(dataset_name, kbet_base64, pca_base64, tsne_base64, boxplot_base64)
 # write them to the log file
-generateLogFile(dataset_name, kbet_results, tsne_path, pca_path, boxplot_results)
+generateLogFile(dataset_name, original, kbet_data, tsne_plot, pca_plot, boxplot_results, hvgs)
