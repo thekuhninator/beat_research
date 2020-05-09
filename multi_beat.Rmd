@@ -1,7 +1,18 @@
+```{r}
+install.packages('png')
+install.packages('raster')
+install.packages('hash')
+
+```
+
+
 
 ```{r}
 # load in the neccessary libraries
 library(ggplot2)
+library(png)
+library("raster")
+library('hash')
 
 ```
 
@@ -68,6 +79,70 @@ grouped_boxplot <- function(boxplot_data, output_dir, output_name)
   # create the output file
   file_name <- paste(output_name, '_grouped_boxplot.png')
   output_file_path <- file.path(output_dir, file_name)
+  #png(output_file_path)
+  
+  # generate the plot
+  g <- ggplot(comparative_boxplot_data, aes(x=dataset,
+                                     y=mean,
+                                     fill=as.factor(batch))) +
+  geom_boxplot() +
+  labs(title = "Comparative Grouped Boxplot", x ="Dataset", y = "Gene Mean Expression", fill = "Batch")
+  
+  # save the output file
+  print(g)
+  #dev.off()
+  
+  }
+
+
+```
+
+
+```{r}
+
+install.packages('grid')
+install.packages('gridExtra')
+library('grid')
+library('gridExtra')
+
+# let's create the HVG vs kBET acceptance rate plots... oh wait
+
+img1 <- "C:/Users/Roman/Documents/Work/Depression_and_Immunology/beat/output/dataset_1_pca_plot.png"
+img2 <- "C:/Users/Roman/Documents/Work/Depression_and_Immunology/beat/output/dataset_1_tsne_plot.png"
+
+rl <- lapply(list(img1, img1, img1, img1), png::readPNG)
+gl <- lapply(rl, grid::rasterGrob)
+do.call(gridExtra::grid.arrange, gl)
+
+
+```
+
+Let's try to tile the images
+
+```{r}
+
+png(filename="FARTASSBUTTFART.png", res=1080)
+
+par(mar=c(1,1,1,1), type = "n", xaxt = "n", yaxt = "n", xlab = "", ylab = "")
+plot.new()
+
+rasterImage(readPNG(source=img1), 0, 0, 1, 1)
+rasterImage(readPNG(source=img1), 0, 1, 1, 2)
+rasterImage(readPNG(source=img1), 1, 0, 2, 1)
+rasterImage(readPNG(source=img1), 1, 1, 2, 2)
+
+dev.off()
+```
+
+Let's get the HVGs and make the plot
+
+```{r}
+
+hvgs_kbet_plot <- function(boxplot_data, output_dir, output_name)
+{
+  # create the output file
+  file_name <- paste(output_name, '_grouped_boxplot.png')
+  output_file_path <- file.path(output_dir, file_name)
   png(output_file_path)
   
   # generate the plot
@@ -81,15 +156,157 @@ grouped_boxplot <- function(boxplot_data, output_dir, output_name)
   print(g)
   dev.off()
   
-  }
+}
+
 
 
 ```
 
 
 ```{r}
+# take in a folder as input
+log_folder = "C:/Users/Roman/Documents/Work/Depression_and_Immunology/beat/log_files"
+log_files <- list.files(log_folder)
 
-# let's create the HVG vs kBET acceptance rate plots... oh wait
+retained_hvgs <- NULL
+hvgs_hash <- hash()
+hvgs_retention <- hash()
+kbet_accept_hash <- hash() 
+original_dataset_name <- NULL
+comparative_boxplot_data <- NULL
+datasets <- c()
+
+for(log_file in log_files)
+{
+  print(log_file)
+  log_file_path <- file.path(log_folder, log_file)
+  con <- file(log_file_path, "r")
+  magic_word    <- readLines(con, n = 1)
+  original      <- as.logical(readLines(con, n=1))
+  print(original)
+  # check the magic word
+  dataset_name  <- readLines(con, n = 1)
+  kbet_expected <- as.numeric(readLines(con, n = 1))
+  kbet_observed <- as.numeric(readLines(con, n = 1))
+  kbet_signif   <- as.numeric(readLines(con, n = 1))
+  tsne_path     <- readLines(con, n = 1)
+  pca_path      <- readLines(con, n = 1)
+  num_hvgs      <- as.numeric(readLines(con, n = 1))
+  hvgs          <- readLines(con, n = num_hvgs)
+  
+  datasets <- c(datasets, dataset_name)
+  
+  print('DATASET NAME')
+  print(dataset_name)
+  print('IS ORIGINAL DATASET')
+  print(original)
+  
+  if(original)
+  {
+    original_dataset_name <- dataset_name
+  }
+  
+  # save the hvgs
+  hvgs_hash[[dataset_name]] <- hvgs
+  kbet_accept_hash[[dataset_name]] <- kbet_observed
+  
+  boxplot_data <- read.csv(log_file_path, check.names=FALSE, skip = 9 + num_hvgs)
+  boxplot_data['dataset'] <- dataset_name
+  
+  if(is.null(comparative_boxplot_data))
+  {
+    comparative_boxplot_data <- boxplot_data
+  }
+  else
+  {
+    comparative_boxplot_data <- rbind(comparative_boxplot_data, boxplot_data)
+  }
+  close(con)
+
+}
+
+# get the retention of hvgs 
+
+print('dataset names')
+print(datasets)
+print('first dataset')
+print(datasets[1])
+#hvgs_hash[[datasets[1]]]
+
+original_hvg_list <- hvgs_hash[[original_dataset_name]]
+print('length of orignal hvgs list')
+num_original_hvgs <- length(original_hvg_list)
+print(num_original_hvgs)
+
+for (dataset_name in datasets)
+{
+  print('dataset name')
+  print(dataset_name)
+  hvgs_retained <- Reduce(intersect, list(orig = original_hvg_list, other = hvgs_hash[[dataset_name]] ))
+  print('length of hvgs retained')
+  print(length(hvgs_retained))
+  percent_retained <- length(hvgs_retained) / num_original_hvgs
+  hvgs_retention[[dataset_name]] <- percent_retained
+  print('percent retained')
+  print(percent_retained)
+}
+
+hvgs_retention[["dataset1_combat"]]
+
+kbet_plot <- data.frame("kbet_acceptance" = numeric(), "dataset_name" = character(), "hvgs_retained" = numeric())
+kbet_plot
+
+for (dataset_name in datasets)
+{
+  kbet_val <- kbet_accept_hash[[dataset_name]]
+  retained <- hvgs_retention[[dataset_name]]
+  new_data <- c(kbet_val, dataset_name, retained)
+  kbet_plot[nrow(kbet_plot) + 1,] = new_data
+}
+
+print(kbet_plot)
 
 ```
+
+```{r}
+# i don't believe these are the actual accepted rates i think that's in the reuslts object from kbet
+g <- ggplot(kbet_plot, aes(x=as.numeric(kbet_acceptance), y = as.numeric(hvgs_retained), color = dataset_name)) + 
+  geom_point() + 
+  labs(title = "KBET vs HVGs Plot", x = "kBET Acceptance Rate",
+  y = "Percent of HVGS Retained ", color="Dataset") + 
+  scale_x_continuous(limits=c(0,1)) + 
+  scale_y_continuous(limits=c(0,1))
+  
+g
+
+#plot(kbet_plot$kbet_acceptance, kbet_plot$hvgs_retained, main="KBET vs HVGs #Plot",
+#   xlab="kBET acceptance Rate ", ylab="Percent of HVGS Retained ", pch=19)
+
+
+```
+
+
+```{r}
+head(comparative_boxplot_data)
+grouped_boxplot(comparative_boxplot_data, '.', 'hi')
+```
+
+
+```{r}
+# new solution, save everything into a .rda file and then just use that as a .beat log file.!
+hello <- c('hi there', 'my name is roman')
+save(hello, file="HELLO_DATA.log", ascii= TRUE)
+```
+
+```{r}
+
+#load(file="BEATLOGTEST.beat")
+load(file='pca_plot_beat_log.beat')
+pca_plot
+library(grid)
+library(gridExtra)
+grid.arrange(pca_plot, pca_plot, nrow = 1)
+
+```
+
 
