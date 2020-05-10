@@ -310,3 +310,53 @@ grid.arrange(pca_plot, pca_plot, nrow = 1)
 ```
 
 
+```{r}
+
+# function to find all beat files given a parent directory as input
+parent_dir <- "../"
+beat_files <- list.files(path=parent_dir, recursive=TRUE, pattern="\\.beat$")
+original_dataset_name <- NULL
+hvgs_hash <- hash()
+hvgs_retention <- hash()
+kbet_accept_hash <- hash() 
+
+retained_hvgs <- NULL
+comparative_boxplot_data <- NULL
+datasets <- c()
+
+#print(beat_files)
+#beat_file
+for (beat_file in beat_files)
+{
+  load(file=file.path(parent_dir, beat_file))
+  datasets <- c(datasets, dataset_name)
+  
+  if(original)
+    original_dataset_name <- dataset_name
+  
+  # save the hvgs
+  hvgs_hash[[dataset_name]] <- hvgs
+  kbet_accept_hash[[dataset_name]] <- kbet_results['kBET.observed'][1,]
+
+  boxplot_data['dataset'] <- dataset_name
+  
+  if(is.null(comparative_boxplot_data))
+  {
+    comparative_boxplot_data <- boxplot_data
+  }
+  else
+  {
+    comparative_boxplot_data <- rbind(comparative_boxplot_data, boxplot_data)
+  }
+  
+}
+```
+
+```{r}
+
+head(comparative_boxplot_data)
+grouped_boxplot(comparative_boxplot_data, '.', 'hi')
+
+```
+
+
