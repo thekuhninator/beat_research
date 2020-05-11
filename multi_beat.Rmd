@@ -13,6 +13,7 @@ library(ggplot2)
 library(png)
 library("raster")
 library('hash')
+library(gridExtra)
 
 ```
 
@@ -138,7 +139,7 @@ Let's get the HVGs and make the plot
 
 ```{r}
 
-hvgs_kbet_plot <- function(boxplot_data, output_dir, output_name)
+hvgs_kbet_plot_data <- function(boxplot_data, output_dir, output_name)
 {
   # create the output file
   file_name <- paste(output_name, '_grouped_boxplot.png')
@@ -253,24 +254,23 @@ for (dataset_name in datasets)
 
 hvgs_retention[["dataset1_combat"]]
 
-kbet_plot <- data.frame("kbet_acceptance" = numeric(), "dataset_name" = character(), "hvgs_retained" = numeric())
-kbet_plot
+kbet_plot_data <- data.frame("kbet_acceptance" = numeric(), "dataset_name" = character(), "hvgs_retained" = numeric())
+kbet_plot_data
 
 for (dataset_name in datasets)
 {
   kbet_val <- kbet_accept_hash[[dataset_name]]
   retained <- hvgs_retention[[dataset_name]]
   new_data <- c(kbet_val, dataset_name, retained)
-  kbet_plot[nrow(kbet_plot) + 1,] = new_data
+  kbet_plot_data[nrow(kbet_plot_data) + 1,] = new_data
 }
 
-print(kbet_plot)
+print(kbet_plot_data)
 
 ```
 
 ```{r}
-# i don't believe these are the actual accepted rates i think that's in the reuslts object from kbet
-g <- ggplot(kbet_plot, aes(x=as.numeric(kbet_acceptance), y = as.numeric(hvgs_retained), color = dataset_name)) + 
+g <- ggplot(kbet_plot_data, aes(x=as.numeric(kbet_acceptance), y = as.numeric(hvgs_retained), color = dataset_name)) + 
   geom_point() + 
   labs(title = "KBET vs HVGs Plot", x = "kBET Acceptance Rate",
   y = "Percent of HVGS Retained ", color="Dataset") + 
@@ -279,7 +279,7 @@ g <- ggplot(kbet_plot, aes(x=as.numeric(kbet_acceptance), y = as.numeric(hvgs_re
   
 g
 
-#plot(kbet_plot$kbet_acceptance, kbet_plot$hvgs_retained, main="KBET vs HVGs #Plot",
+#plot(kbet_plot_data$kbet_acceptance, kbet_plot_data$hvgs_retained, main="KBET vs HVGs #Plot",
 #   xlab="kBET acceptance Rate ", ylab="Percent of HVGS Retained ", pch=19)
 
 
@@ -315,10 +315,13 @@ grid.arrange(pca_plot, pca_plot, nrow = 1)
 # function to find all beat files given a parent directory as input
 parent_dir <- "../"
 beat_files <- list.files(path=parent_dir, recursive=TRUE, pattern="\\.beat$")
+
 original_dataset_name <- NULL
-hvgs_hash <- hash()
-hvgs_retention <- hash()
-kbet_accept_hash <- hash() 
+hvgs_hash        <- hash()
+hvgs_retention   <- hash()
+kbet_accept_hash <- hash()
+pca_plots        <- hash()
+tsne_plots       <- hash()
 
 retained_hvgs <- NULL
 comparative_boxplot_data <- NULL
@@ -337,8 +340,9 @@ for (beat_file in beat_files)
   # save the hvgs
   hvgs_hash[[dataset_name]] <- hvgs
   kbet_accept_hash[[dataset_name]] <- kbet_results['kBET.observed'][1,]
-
   boxplot_data['dataset'] <- dataset_name
+  pca_plots[[dataset_name]] <- pca_plot
+  tsne_plots[[dataset_name]] <- tsne_plot
   
   if(is.null(comparative_boxplot_data))
   {
@@ -359,4 +363,77 @@ grouped_boxplot(comparative_boxplot_data, '.', 'hi')
 
 ```
 
+```{r}
+tile_plots <- function(plots, dataset_names)
+{
+  plot_list <- list()
+  for(name in dataset_names)
+  {
+    
+      plot <- plots[[name]]
+      plot_list[[name]] <- plot
+  }
+  print(grid.arrange(grobs=plot_list, ncol = 2, widths = c(3,3)))
+  #return (new_p)
+}
+tile_plots(tsne_plots, datasets)
+tile_plots(pca_plots, datasets)
+```
+
+```{r}
+
+get_kbet_plot_data <- function(hvgs_hash, original_dataset_name, kbet_accept_hash)
+{
+  original_hvg_list <- hvgs_hash[[original_dataset_name]]
+  print('length of orignal hvgs list')
+  num_original_hvgs <- length(original_hvg_list)
+  print(num_original_hvgs)
+  
+  # get the hvgs percent retained
+  for (dataset_name in datasets)
+  {
+    print('dataset name')
+    print(dataset_name)
+    hvgs_retained <- Reduce(intersect, list(orig = original_hvg_list, other = hvgs_hash[[dataset_name]] ))
+    print('length of hvgs retained')
+    print(length(hvgs_retained))
+    percent_retained <- length(hvgs_retained) / num_original_hvgs
+    hvgs_retention[[dataset_name]] <- percent_retained
+    print('percent retained')
+    print(percent_retained)
+  }
+  
+  hvgs_retention[["dataset1_combat"]]
+  
+  kbet_plot_data <- data.frame("kbet_acceptance" = numeric(), "dataset_name" = character(), "hvgs_retained" = numeric())
+  kbet_plot_data
+  
+  # get the kbet value for each dataset
+  for (dataset_name in datasets)
+  {
+    kbet_val <- 1 - kbet_accept_hash[[dataset_name]]
+    retained <- hvgs_retention[[dataset_name]]
+    new_data <- c(kbet_val, dataset_name, retained)
+    kbet_plot_data[nrow(kbet_plot_data) + 1,] = new_data
+  }
+  
+  return(kbet_plot_data)
+}
+
+kbet_plot_data <- get_kbet_plot_data(hvgs_hash, original_dataset_name, kbet_accept_hash)
+
+g <- ggplot(kbet_plot_data, aes(x=as.numeric(kbet_acceptance), y = as.numeric(hvgs_retained), color = dataset_name)) + 
+  geom_point() + 
+  labs(title = "KBET vs HVGs Plot", x = "kBET Acceptance Rate",
+  y = "Percent of HVGS Retained ", color="Dataset") + 
+  scale_x_continuous(limits=c(0,1)) + 
+  scale_y_continuous(limits=c(0,1))
+  
+g
+
+  #plot(kbet_plot_data$kbet_acceptance, kbet_plot_data$hvgs_retained, main="KBET vs HVGs #Plot",
+  #   xlab="kBET acceptance Rate ", ylab="Percent of HVGS Retained ", pch=19)
+
+
+```
 
