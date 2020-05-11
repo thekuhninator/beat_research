@@ -93,7 +93,7 @@ grouped_boxplot <- function(boxplot_data, output_dir, output_name)
   print(g)
   #dev.off()
   
-  }
+}
 
 
 ```
@@ -364,6 +364,7 @@ grouped_boxplot(comparative_boxplot_data, '.', 'hi')
 ```
 
 ```{r}
+
 tile_plots <- function(plots, dataset_names)
 {
   plot_list <- list()
