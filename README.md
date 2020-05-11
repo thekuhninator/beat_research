@@ -14,22 +14,29 @@ To install the latest version
 
 The simplest way to run BEAT for a set of datasets that have been batch corrected is to place them in a directory with the following structure. The gene counts files must have gene_counts or genecounts in the name of the file or beat will not recognzie them. The metadata must have "metadata" "meta_data" or "annot" in the name of the file or else BEAT will not recognize it. This is done for simplicity and effecenciency. To see an example of how the gene counts csv file must be organized, see the example_data folder.
 
-To run BEAT on every folder in a directory, one can construct the command by doing the following:
+To run BEAT on a particular dataset, construct the following command:
 
-`for dataset_folder in ./*; do echo "beat -o <output_folder> -d $f" ;done`
+`./beat.R -g example_data/dataset_1/dataset1_gene_counts.csv -a example_data/dataset_1/dataset1_metadata.csv -u -o  output/dataset1/dataset1_uncorrected -f diagnosis -d dataset1_uncorrected`
 
-Example of directory structure:
-![Example of directory structure](https://github.com/thekuhninator/beat/blob/master/dir_structure.PNG?raw=true)
+To run multi_beat for a set of corrected datasets, construct the following command:
+
+`./multi_beat.R -d ../ -o aggregate -n dataset1`
+
+Where the argument after -d represent the parent directory containing all the subdirectories with .beat files. mutli_beat takes in as input a parent directory and will search recurisvely for all .beat files.
 
 <h1> Dependencies and Docker </h1>
 
-BEAT requires many dependencies to run. In addition to this many of the dependencies don't work with certain R versions. For this reason it is highly recommended that Docker is used to make the use of `BERP` stress free.
+beat requires many dependencies to run. In addition to this many of the dependencies don't work with certain R versions. For this reason it is highly recommended that Docker is used to make the use of `beat` stress free.
 
 Docker documentation TBD.
 
-<h1> Cite BEAT </h1>
+<h1> Contact the Author </h1>
 
-If you find `BEAT` useful in your research please cite the related publication:
+If you are having issues with `beat`, feel free to reach out to me, at roman (dot) kuhn (at) gmail (dot) com.
+
+<h1> Cite beat </h1>
+
+If you find `beat` useful in your research please cite the related publication:
 
 [Assessment of Batch Correction Methods for Whole Blood RNA-Seq Data](http://google.com)
 <h1> BEAT Workflow Pipeline/Use Diagram </h1>
