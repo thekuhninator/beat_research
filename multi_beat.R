@@ -84,7 +84,7 @@ kbet_hvg_scatterplot <- function(kbet_plot_data, output_dir, output_name)
   
   
   g <- ggplot(kbet_plot_data, aes(x=as.numeric(kbet_acceptance), y = as.numeric(hvgs_retained), color = dataset_name)) + 
-    geom_point() + 
+    geom_point(size=4) + 
     labs(title = "KBET vs HVGs Plot", x = "kBET Acceptance Rate",
          y = "Percent of HVGS Retained ", color="Dataset") + 
     scale_x_continuous(limits=c(0,1)) + 
@@ -112,7 +112,9 @@ grouped_boxplot <- function(boxplot_data, output_dir, output_name)
                                             y=mean,
                                             fill=as.factor(batch))) +
     geom_boxplot() +
-    labs(title = "Comparative Grouped Boxplot", x ="Dataset", y = "Gene Mean Expression", fill = "Batch")
+    labs(title = "Comparative Grouped Boxplot", x ="Dataset", y = "Gene Mean Expression", fill = "Batch") +
+    theme(axis.text.x = element_text(angle=30))
+  
   
   # save the output file
   print(g)
@@ -135,10 +137,10 @@ tile_plots <- function(plots, dataset_names, plot_name, output_dir, output_name)
   for(name in dataset_names)
   {
     
-    plot <- plots[[name]]
+    plot <- plots[[name]] + theme_bw()
     plot_list[[name]] <- plot
   }
-  g <- grid.arrange(grobs=plot_list, ncol = 2)
+  g <- grid.arrange(grobs=plot_list, ncol = round(sqrt(length(dataset_names))))
   
   print(g)
   dev.off()
@@ -244,8 +246,8 @@ kbet_plot_data <- get_kbet_plot_data(hvgs_hash, original_dataset_name, kbet_acce
 
 kbet_hvg_path  <- kbet_hvg_scatterplot(kbet_plot_data, output_dir, output_name)
 boxplot_path   <- grouped_boxplot(comparative_boxplot_data, output_dir, output_name)
-pca_tile_path  <- tile_plots(tsne_plots, datasets, 'tsne', output_dir, output_name)
-tsne_tile_path <- tile_plots(pca_plots,  datasets,'pca',   output_dir, output_name)
+pca_tile_path  <- tile_plots(pca_plots, datasets, 'pca', output_dir, output_name)
+tsne_tile_path <- tile_plots(tsne_plots,  datasets,'tsne',   output_dir, output_name)
 
 kbet_hvg_base64  <- toBase64(kbet_hvg_path)
 boxplot_base64   <- toBase64(boxplot_path)
