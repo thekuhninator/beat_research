@@ -225,9 +225,9 @@ pca <- function(gene_counts, annot, output_dir, output_name, foi=NULL) {
   file_path <- paste( file.path(output_dir, output_name), "_pca_plot.png", sep="")
   png(file=file_path)
   
-  name = paste(sapply(paste(unlist(strsplit(output_name, "[_]")), sep=" "), simpleCap), collapse=" ")
-  plotTitle = paste(capitalize(unlist(strsplit(name, "_"))), collapse= " ")
-  plotTitle <- paste( plotTitle, " PCA Plot", sep="")
+  #name = paste(sapply(paste(unlist(strsplit(output_name, "_")), sep=" "), simpleCap), collapse=" ")
+  #plotTitle = paste(capitalize(unlist(strsplit(name, "_"))), collapse= " ")
+  plotTitle <- paste( output_name, " PCA Plot", sep=" ")
   
   # Generate range of values to iterate through for plot labeling
   label_ncol <- grep("batch", colnames(pca_df))
@@ -277,9 +277,9 @@ tsne_batch <- function(gene_counts, annot, ouput_dir, output_name)
   file_path <- paste( file.path(output_dir, output_name), "_tsne_plot.png", sep="")
   png(file=file_path)
   
-  name = paste(sapply(paste(unlist(strsplit(output_name, "[_]")), sep=" "), simpleCap), collapse=" ")
-  plotTitle = paste(capitalize(unlist(strsplit(name, "_"))), collapse= " ")
-  plotTitle <- paste( plotTitle, " T-SNE Plot", sep="")
+  #name = paste(sapply(paste(unlist(strsplit(output_name, " ")), sep=" "), simpleCap), collapse=" ")
+  #plotTitle = paste(capitalize(unlist(strsplit(name, "_"))), collapse= " ")
+  plotTitle <- paste( output_name, "T-SNE Plot", sep=" ")
   
   g <- tsne(t(gene_counts), labels=as.factor(annot$batch), legendtitle ="Batch") + 
     ggtitle(plotTitle) +
