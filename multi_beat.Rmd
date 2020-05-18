@@ -7,13 +7,14 @@ Load in libraries
 # load in required libraries
 #
 
-install.packages('cowplot')
+#2install.packages('cowplot')
 
 # load in the neccessary libraries
 library(ggplot2)
 library(png)
 library("raster")
 library('hash')
+library(grid)
 library(gridExtra)
 library(getopt)
 library(knitr)
@@ -160,32 +161,75 @@ grouped_boxplot <- function(boxplot_data, output_dir, output_name)
 
 ```{r}
 
+get_legend <- function(p) {
+  tmp <- ggplot_gtable(ggplot_build(p))
+  leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
+  legend <- tmp$grobs[[leg]]
+  return(legend)
+}
+
 #
 # Tile plots
 #
-tile_plots <- function(plots, dataset_names, plot_name, output_dir, output_name)
+tile_plots <- function(plots, dataset_names, plot_name, output_dir, output_name, combined_title)
 {
   # create the output file
   file_name <- paste(output_name, plot_name, 'plot.png', sep = "_")
   output_file_path <- file.path(output_dir, file_name)
-  png(output_file_path)
-  
+  #png(output_file_path)
+  #combined_legend <- NULL
   plot_list <- list()
   for(name in dataset_names)
   {
     
     plot <- plots[[name]]
-    plot <- plot + theme_bw() #+ geom_point(size=1)
+    plot <- plot + theme_bw()#+ theme(legend.position = "bottom")
     #print(plot)
+    # remove the legend from it
     plot_list[[name]] <-plot
+
   }
-  g <- grid.arrange(grobs=plot_list, ncol = round(sqrt(length(dataset_names))))
+#  print(plot_list[[1]])
+  g <- ggplotGrob(plot_list[[1]] + theme(legend.position = "bottom"))$grobs
+  #print(g)
+  combined_legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
+  
+  #print(combined_legend)
+
+  #g <- grid.arrange(grobs=plot_list, ncol = round(sqrt(length(dataset_names))),      top = textGrob(combined_title ,gp=gpar(fontsize=20,font=3)), legend = combined_legend)
+  
+  lheight <- sum(combined_legend$height)
+  lwidth <- sum(combined_legend$width)
+
+  # if we have x n cols then we need to make x blank plots and then set x/2 to be combined_legend
+  
+   g <- grid.arrange(
+    do.call(arrangeGrob, lapply(plots, function(x) 
+      x + theme(legend.position="none"))),
+    #combined_legend,
+    ncol = round(sqrt(length(dataset_names))),      top = textGrob(combined_title ,gp=gpar(fontsize=20,font=3)))
+   
+   
+   p_no_legend <- lapply(plot_list, function(x) x + theme(legend.position = "none"))
+  legend <- cowplot::get_legend(plot_list[[1]] + theme(legend.position = "bottom"))
+  title <- cowplot::ggdraw() + cowplot::draw_label("test", fontface = "bold")
+  p_grid <- cowplot::plot_grid(plotlist = p_no_legend, ncol = 2)
+  print(cowplot::plot_grid(title, p_grid, legend, ncol = round(sqrt(length(dataset_names))), ))
+  
+#   g <- cowplot::plot_grid(plotlist = plot_list,  ncol = round(sqrt(length(dataset_names))) )
+   #print(grid.arrange(g, combined_legend))
+    #,    widths = unit.c(unit(1, "npc") - lwidth, lheight))
+#   g <- g + theme(legend.position="bottom")
   
   print(g)
-  dev.off()
-  print(g)
+  #dev.off()
+  #print(combined_legend)
+  #print(g)
   return (output_file_path)
 }
+pca_tile_path  <- tile_plots(tsne_plots, datasets, 'tsne', output_dir, output_name, 'TSNE Combined Plots')
+print(pca_tile_path)
+
 
 ```
 
@@ -304,8 +348,8 @@ kbet_plot_data <- get_kbet_plot_data(hvgs_hash, original_dataset_name, kbet_acce
 
 kbet_hvg_path  <- kbet_hvg_scatterplot(kbet_plot_data, output_dir, output_name)
 boxplot_path   <- grouped_boxplot(comparative_boxplot_data, output_dir, output_name)
-pca_tile_path  <- tile_plots(tsne_plots, datasets, 'tsne', output_dir, output_name)
-tsne_tile_path <- tile_plots(pca_plots,  datasets,'pca',   output_dir, output_name)
+pca_tile_path  <- tile_plots(pca_plots, datasets, 'tsne', output_dir, output_name, 'PCA Combined Plots')
+tsne_tile_path <- tile_plots(tsne_plots,  datasets,'pca',   output_dir, output_name, 'PCA Combined Plots')
 
 kbet_hvg_base64  <- toBase64(kbet_hvg_path)
 boxplot_base64   <- toBase64(boxplot_path)
