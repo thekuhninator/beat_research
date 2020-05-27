@@ -59,29 +59,29 @@ A flag that should be used if the dataset is uncorrected. This will be used late
 
 ## beat Output Files
 
-Beat produces 6 output files.
+Beat produces 6 output files and outputs them in the output directory specified. The path it outputs to uses the output directory and dataset name in the form of: <output_dir>/\<dataset_name/.
 
-#### beat Report: <output_dir>/\<dataset_name\>_batch_correction_report.html
+#### beat Report: \<dataset_name\>_batch_correction_report.html
 
 The html file is the most valuable output from beat. It contains several plots that provide an overview as to how severe the batch effect is in the dataset. It contains a PCA plot, k-bet plot, t-sne plot, and comparative boxplot. Learn more about how each of the plots inform the user about the severity of the batch effect in their data below.
 
-#### pca_plot: <output_dir>/\<dataset_name\>_pca_plot.png
+#### pca_plot: \<dataset_name\>_pca_plot.png
 
 Principal Component Analysis (PCA) is a dimensionality reduction technique that emphasizes the variation in the data and allows us to see patterns in the data.X axis represents the first principal component and its contributor rate. Y axis represents the second component and its contributor rate. Points represent each sample.Sample colors and shapes are according to a group the sample belongs to. If the plot shows many samples of the same color (same batch) clustering together, this means there is a strong batch effect presense in the data. If the plot shows colors well mixed the batch effect is not severe in the data.
 
-#### kbet_plot: <output_dir>/\<dataset_name\>_kbet_plot.png
+#### kbet_plot: \<dataset_name\>_kbet_plot.png
 
 The K-Nearest Neighbor Batch Effect Test (kBET) is a test metric used for assessing the severity of a batch effect in the data. The algorithm creates k-nearest neighbour matrix and choses 10% of the samples to check the batch label distribution in its neighbourhood. If the local batch label distribution is sufficiently similar to the global batch label distribution, the $\chi^2$-test does not reject the null hypothesis (that is "all batches are well-mixed"). The neighbourhood size k is fixed for all tests. Next, the test returns a binary result for each of the tested samples. Finally, the result of kBET is the average test rejection rate. The lower the test result, the less bias is introduced by the batch effect. kBET is very sensitive to any kind of bias. By comparing the distribution of the expected and observed plots, one can see how severe the batch effect is in the data. The closer the two boxes are, the less severe, the batch effect. For more information about kbet, see their [their paper](https://www.nature.com/articles/s41592-018-0254-1) or [github](https://github.com/theislab/kBET/blob/master/README.md).
 
-#### t-sne plot: <output_dir>/\<dataset_name\>_t_sne_plot.png
+#### t-sne plot: \<dataset_name\>_t_sne_plot.png
 
 T-distributed Stochastic Neighbor Embedding (t-sne) is a machine learning algorithm for visualization. It is also a dimensionality reduction technique like PCA and is also useful in determing the severity of the batch effect by examining how strongly the colors (batches) are clustering together.
 
-#### comparative boxplot: <output_dir>/\<dataset_name\>_boxplot.png
+#### comparative boxplot: \<dataset_name\>_boxplot.png
 
 The comparative boxplot is a useful way of visualizing how the batches vary in the distribution of each gene's mean expression. Each gene's mean expression value across all samples within a batch are used as data points in constructing the comparative boxplot. If the boxes appear to be similar in their distribution the batch effect is not as severe for the dataset.
 
-#### beat log file: <output_dir>/\<dataset_name\>_beat_log.beat
+#### beat log file: \<dataset_name\>_beat_log.beat
 
 The beat log files contain important information that are used when mutli_beat is run. They are stored in the R data format.
 
@@ -122,25 +122,25 @@ The name of the dataset being examined, used for titles and file names.
 
 ### multi_beat Output Files
 
-multi_beat produces 5 output files.
+multi_beat produces 5 output files. The path it outputs to uses the output directory and dataset name in the form of: <output_dir>/\<output_name/.
 
-#### beat Report: <output_dir>/\<dataset_name\>_batch_correction_report.html
+#### beat Report: \<dataset_name\>_batch_correction_report.html
 
 The html file is the most valuable output from multi_beat. It contains several combined plots that provide an overview as to how severe the batch effect is in each of the correction methods for the dataset. It contains a combined PCA plot, k-bet vs highly variable genes plot, combined t-sne plot, and combined comparative boxplot. Learn more about how each of the plots inform the user about the severity of the batch effect in their data below.
 
-#### kBET vs Highly Variable Genes Plot: <output_dir>/\<dataset_name\>_kbet_hvg_scatterplot.png
+#### kBET vs Highly Variable Genes Plot: \<dataset_name>_kbet_hvg_scatterplot.png
 
 The highly variable genes are defined as the top 25%? of genes with the highest variance. multi_beat checks which genes are retained between each dataset and the original uncorrected dataset which was specified by the user when beat was first run.
 
-#### Combined PCA Plot: <output_dir>/\<dataset_name\>_pca_plot.png
+#### Combined PCA Plot: \<dataset_name\>_pca_plot.png
 
 Principal Component Analysis (PCA) is a dimensionality reduction technique that emphasizes the variation in the data and allows us to see patterns in the data.X axis represents the first principal component and its contributor rate. Y axis represents the second component and its contributor rate. Points represent each sample.Sample colors and shapes are according to a group the sample belongs to. If the plot shows many samples of the same color (same batch) clustering together, this means there is a strong batch effect presense in the data. If the plot shows colors well mixed the batch effect is not severe in the data.
 
-#### Combined t-sne plot: <output_dir>/\<dataset_name\>_t_sne_plot.png
+#### Combined t-sne plot: \<dataset_name\>_t_sne_plot.png
 
 T-distributed Stochastic Neighbor Embedding (t-sne) is a machine learning algorithm for visualization. It is also a dimensionality reduction technique like PCA and is also useful in determing the severity of the batch effect by examining how strongly the colors (batches) are clustering together.
 
-#### Combined comparative boxplot: <output_dir>/\<dataset_name\>_boxplot.png
+#### Combined comparative boxplot: \<dataset_name\>_boxplot.png
 
 The combined comparative boxplot is a useful way of visualizing how the batches vary in the distribution of each gene's mean expression. Each gene's mean expression value across all samples within a batch are used as data points in constructing the comparative boxplot. If the boxes appear to be similar in their distribution the batch effect is not as severe for the dataset.
 
