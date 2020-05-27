@@ -4,18 +4,19 @@
 # load in required libraries
 #
 
-library(devtools)
-library(kBET)
-library(knitr)
+
+library(devtools, quietly = TRUE, warn.conflicts = FALSE) 
+library(kBET, quietly = TRUE, warn.conflicts = FALSE) 
+library(knitr, quietly = TRUE, warn.conflicts = FALSE) 
 #library(base64enc)
 #library(bapred)
-library(ggplot2)
-library(dplyr)
-library(gplots)
-library(getopt)
-library(M3C)
-library(readr)
-library(matrixStats)
+library(ggplot2, quietly = TRUE, warn.conflicts = FALSE) 
+library(dplyr, quietly = TRUE, warn.conflicts = FALSE) 
+library(gplots, quietly = TRUE, warn.conflicts = FALSE) 
+library(getopt, quietly = TRUE, warn.conflicts = FALSE) 
+library(M3C, quietly = TRUE, warn.conflicts = FALSE)
+library(readr, quietly = TRUE, warn.conflicts = FALSE) 
+library(matrixStats, quietly = TRUE, warn.conflicts = FALSE) 
 #library(Rtsne)
 
 
@@ -28,7 +29,7 @@ spec = matrix(c(
   'input_counts', 'g', 1, "character",
   'input_annot', 'a', 1, "character",
   'output_dir','o', 1, "character",
-  'dataset_name','d',1,"character",
+  'dataset_name','n',1,"character",
   'uncorrected','u',2,"logical",
   'factor_of_interest', 'f', '2', 'character'
 ), byrow=TRUE, ncol=4)
@@ -53,10 +54,20 @@ factor_of_interest <- opt$factor_of_interest
 # create the direcotry if it does not already exist
 dir.create(file.path(output_dir), showWarnings = FALSE)
 
+# check if file paths exist
+if (!file.exists(input_counts))
+  stop("Cannot find gene counts file. Are you sure the path is correct?")
+if (!file.exists(input_metadata))
+  stop("Cannot find metadata file. Are you sure the path is correct?")
+
 # Read in data file
 gene_counts <- t(read.csv(input_counts, header = TRUE, row.names = 1, check.names=FALSE))
 #Read in annotation file
 annot <- read.csv(input_metadata, header = TRUE, row.names = 1, check.names = FALSE)
+
+# check if factor of interest was inputted and exists in the metadataw
+if(!is.null(factor_of_interest) && !factor_of_interest %in% names(annot))
+  stop("Factor of interest not in the columns of the metadata. Are you sure it exists and is spelled correctly?")
 
 # kBET function
 # Input: Takes in gene conts data table, metadata data table, a foi, output_directory, and output name
@@ -280,10 +291,11 @@ tsne_batch <- function(gene_counts, annot, ouput_dir, output_name)
   #name = paste(sapply(paste(unlist(strsplit(output_name, " ")), sep=" "), simpleCap), collapse=" ")
   #plotTitle = paste(capitalize(unlist(strsplit(name, "_"))), collapse= " ")
   plotTitle <- paste( output_name, "T-SNE Plot", sep=" ")
-  
-  g <- tsne(t(gene_counts), labels=as.factor(annot$batch), legendtitle ="Batch") + 
-    ggtitle(plotTitle) +
-    theme(plot.title = element_text(size=20, hjust = .5))
+  invisible(capture.output( 
+    g <- tsne(t(gene_counts), labels=as.factor(annot$batch), legendtitle ="Batch", dotsize = 2) + 
+      ggtitle(plotTitle) +
+      theme(plot.title = element_text(size=20, hjust = .5))
+  ))
   #print(typeof(g))
   print(g)
   dev.off()
@@ -455,10 +467,15 @@ toBase64 <- function(image_file) {
 }
 
 # get all the results
+print('Running kbet...')
 kbet_results <- kbet(gene_counts, annot, output_dir, dataset_name)
+print('Creating t-sne plot...')
 tsne_results <- tsne_batch(gene_counts, annot, output_dir, dataset_name)
+print('Creating pca plot...')
 pca_results <- pca(t(gene_counts), annot, output_dir, dataset_name, factor_of_interest)
+print('Creating boxplot...')
 boxplot_results <- grouped_boxplot(gene_counts, annot, output_dir, dataset_name);
+print('Getting HVGs...')
 hvgs <- getHvgs(gene_counts, annot)
 
 tsne_path <- tsne_results$path
@@ -470,19 +487,10 @@ kbet_data <- kbet_results$results
 boxplot_path <- boxplot_results$path
 boxplot_data <- boxplot_results$data
 
-print('kbet_64')
-print(kbet_path)
 kbet_base64     <- toBase64(kbet_path)
-print('pca')
-print(pca_path)
 pca_base64      <- toBase64(pca_path)
-print('tsne')
-print(tsne_path)
 tsne_base64     <- toBase64(tsne_path)
-print('boxplot')
-print(boxplot_path)
 boxplot_base64  <- toBase64(boxplot_path)
-
 
 # get all the base64 data of images
 #tsne_base64 <- toBase64(tsne_path)
@@ -493,3 +501,5 @@ boxplot_base64  <- toBase64(boxplot_path)
 generate_report(dataset_name, kbet_base64, pca_base64, tsne_base64, boxplot_base64)
 # write them to the log file
 generateLogFile(dataset_name, original, kbet_data, tsne_plot, pca_plot, boxplot_results, hvgs)
+
+print('The report and log file have succesfully been generated!')
