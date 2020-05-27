@@ -17,7 +17,7 @@ The following is a detailed description of how the arguments used for `beat`.
 
 ### Arguments
 
-<b>-g/--input_counts \<string\> </b>
+<b>-g/--input_counts \<string\> </b> (required)
 
 The path to the csv gene counts file. The gene counts should be normalized prior to running beat. The gene counts should have the rows be gene counts and the columns be the name of the samples. See the example below or the example gene counts files in `/example_data` for an example.
 
@@ -29,7 +29,7 @@ gene1 | val  | val     | val
 gene2 | val  | val     | val
 gene3 | val  | val     | val
 
-<b>-a/--input_annot \<string\> </b>
+<b>-a/--input_annot \<string\> </b> (required)
 
 The path to the csv metadata file. The metadata should have the rows be the samples and the columns be the features of the metadata. See the example below or the example metadata files in `/example_data` for an example. It is crucial that the sample names be the first column in the metadata. Additionally, these names must match all the sample names in the gene counts file. Otherwise, beat will not be able to run properly.
 
@@ -41,11 +41,11 @@ sample1    |   val    | val     |   val
 sample2    |   val    | val     |   val  
 sample3    |   val    | val     |   val  
 
-<b>-n/--dataset_name \<string\> </b>
+<b>-n/--dataset_name \<string\> </b> (required)
 
 The name of the dataset to be used on the plots and name of the files.
 
-<b>-o/--output_dir \<string\> </b>
+<b>-o/--output_dir \<string\> </b> (required)
 
 A directory to output the pca plot,  t-sne plot, k-bet plot, boxplot, beat log file, and html beat report.
 
@@ -105,15 +105,15 @@ The following is a detailed description of how the arguments used for `multi_bea
 
 ### Arguments
 
-<b>-d/--parent_dir \<string\> </b>
+<b>-d/--parent_dir \<string\> </b> (required)
 
 The path to the parent directory holding other folders containing .beat log files. multi_beat checks all subfolders recursively.
 
-<b>-o/--output_dir \<string\> </b>
+<b>-o/--output_dir \<string\> </b> (required)
 
 The path to the output file where multi_beat will output the aggregate report.
 
-<b>-n/--output_name \<string\> </b>
+<b>-n/--output_name \<string\> </b> (required)
 
 The name of the dataset being examined, used for titles and file names.
 
