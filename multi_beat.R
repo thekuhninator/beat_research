@@ -34,6 +34,10 @@ output_name <- opt$output_name
 # create the direcotry if it does not already exist
 dir.create(file.path(output_dir), showWarnings = FALSE)
 
+# check if the parent_dir exists...
+if (!dir.exists(parent_dir))
+  stop("Cannot find parent directory. Are you sure the path is correct?")
+
 #
 # Get the kbet plot data
 #
@@ -83,10 +87,10 @@ kbet_hvg_scatterplot <- function(kbet_plot_data, output_dir, output_name)
   png(output_file_path)
   
   
-  g <- ggplot(kbet_plot_data, aes(x=as.numeric(kbet_acceptance), y = as.numeric(hvgs_retained), color = dataset_name)) + 
+  g <- ggplot(kbet_plot_data, aes(x=as.numeric(hvgs_retained), y = as.numeric(kbet_acceptance), color = dataset_name)) + 
     geom_point(size=4) + 
-    labs(title = "KBET vs HVGs Plot", x = "kBET Acceptance Rate",
-         y = "Percent of HVGS Retained ", color="Dataset") + 
+    labs(title = "KBET vs HVGs Plot", x = "Percent of HVGS Retained",
+         y = "kBET Acceptance Rate", color="Dataset") + 
     scale_x_continuous(limits=c(0,1)) + 
     scale_y_continuous(limits=c(0,1))
   
@@ -126,21 +130,25 @@ grouped_boxplot <- function(boxplot_data, output_dir, output_name)
 #
 # Tile plots
 #
-tile_plots <- function(plots, dataset_names, plot_name, output_dir, output_name)
+tile_plots <- function(plots, dataset_names, plot_name, output_dir, output_name, combined_title)
 {
   # create the output file
   file_name <- paste(output_name, plot_name, 'plot.png', sep = "_")
   output_file_path <- file.path(output_dir, file_name)
   png(output_file_path)
-  
   plot_list <- list()
   for(name in dataset_names)
   {
-    
-    plot <- plots[[name]] + theme_bw()
-    plot_list[[name]] <- plot
+    plot <- plots[[name]]
+    plot <- plot + theme_bw()
+    plot_list[[name]] <-plot
   }
-  g <- grid.arrange(grobs=plot_list, ncol = round(sqrt(length(dataset_names))))
+  
+  p_no_legend <- lapply(plot_list, function(x) x + theme(legend.position = "none"))
+  legend <- cowplot::get_legend(plot_list[[1]] + theme(legend.position = "bottom"))
+  title <- cowplot::ggdraw() + cowplot::draw_label(combined_title, fontface = "bold")
+  p_grid <- cowplot::plot_grid(plotlist = p_no_legend, ncol = 2)
+  g <- cowplot::plot_grid(title, p_grid, legend, ncol = 1, rel_heights = c(0.1, 1, 0.2))
   
   print(g)
   dev.off()
@@ -246,8 +254,8 @@ kbet_plot_data <- get_kbet_plot_data(hvgs_hash, original_dataset_name, kbet_acce
 
 kbet_hvg_path  <- kbet_hvg_scatterplot(kbet_plot_data, output_dir, output_name)
 boxplot_path   <- grouped_boxplot(comparative_boxplot_data, output_dir, output_name)
-pca_tile_path  <- tile_plots(pca_plots, datasets, 'pca', output_dir, output_name)
-tsne_tile_path <- tile_plots(tsne_plots,  datasets,'tsne',   output_dir, output_name)
+pca_tile_path  <- tile_plots(pca_plots, datasets, 'pca', output_dir, output_name, 'PCA Combined Plots')
+tsne_tile_path <- tile_plots(tsne_plots,  datasets,'tsne',   output_dir, output_name, 'T-SNE Combined Plots')
 
 kbet_hvg_base64  <- toBase64(kbet_hvg_path)
 boxplot_base64   <- toBase64(boxplot_path)
