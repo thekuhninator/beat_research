@@ -57,7 +57,7 @@ A feature of the dataset that you would like to include alongside batch in the p
 
 A flag that should be used if the dataset is uncorrected. This will be used later when multi_beat is run.
 
-### beat Output Files
+## beat Output Files
 
 Beat produces 6 output files.
 
@@ -84,6 +84,8 @@ The comparative boxplot is a useful way of visualizing how the batches vary in t
 #### beat log file: <output_dir>/\<dataset_name\>_beat_log.beat
 
 The beat log files contain important information that are used when mutli_beat is run. They are stored in the R data format.
+
+___
 
 # multi_beat
 
