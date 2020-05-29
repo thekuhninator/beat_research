@@ -19,7 +19,7 @@ The following is a detailed description of how the arguments used for `beat`.
 
 <b>-g/--input_counts \<string\> </b> (required)
 
-The path to the csv gene counts file. The gene counts should be normalized prior to running beat. The gene counts should have the rows be gene counts and the columns be the name of the samples. See the example below or the example gene counts files in `/example_data` for an example.
+The path to the gene counts file in comma seperated value format (.csv). The gene counts should be normalized prior to running beat. The gene counts should have the rows be gene counts and the columns be the name of the samples. See the example below or the example gene counts files in `/example_data` for an example.
 
 Example:
 
@@ -31,7 +31,7 @@ gene3 | val  | val     | val
 
 <b>-a/--input_annot \<string\> </b> (required)
 
-The path to the csv metadata file. The metadata should have the rows be the samples and the columns be the features of the metadata. See the example below or the example metadata files in `/example_data` for an example. It is crucial that the sample names be the first column in the metadata. Additionally, these names must match all the sample names in the gene counts file. Otherwise, beat will not be able to run properly.
+The path to the metadata file in comma seperated value format (.csv). The metadata should have the rows be the samples and the columns be the features of the metadata. See the example below or the example metadata files in `/example_data` for an example. It is crucial that the sample names be the first column in the metadata. Additionally, these names must match all the sample names in the gene counts file. Otherwise, beat will not be able to run properly.
 
 Example:
 
