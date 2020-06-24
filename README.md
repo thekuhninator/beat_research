@@ -67,7 +67,7 @@ The html file is the most valuable output from beat. It contains several plots t
 
 #### pca_plot: \<dataset_name\>_pca_plot.png
 
-Principal Component Analysis (PCA) is a dimensionality reduction technique that emphasizes the variation in the data and allows us to see patterns in the data.X axis represents the first principal component and its contributor rate. Y axis represents the second component and its contributor rate. Points represent each sample.Sample colors and shapes are according to a group the sample belongs to. If the plot shows many samples of the same color (same batch) clustering together, this means there is a strong batch effect presense in the data. If the plot shows colors well mixed the batch effect is not severe in the data.
+Principal Component Analysis (PCA) is a dimensionality reduction technique that emphasizes the variation in the data and allows us to see patterns in the data. The X axis represents the first principal component and its contributor rate. The Y axis represents the second component and its contributor rate. Points represent each sample. Sample colors and shapes are according to a group the sample belongs to. If the plot shows many samples of the same color (same batch) clustering together, this means there is a strong batch effect presense in the data. If the plot shows colors well mixed the batch effect is not severe in the data.
 
 #### kbet_plot: \<dataset_name\>_kbet_plot.png
 
