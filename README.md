@@ -3,15 +3,19 @@ BEAT - (Batch Effect Assessment Tool) is designed for researchers to assess the 
 
 ## Installation 
 
-To install the latest version 
+To install the latest version:
 
-`install.packages('beat.zip', repos = NULL, type = 'source')`
+Clone this repository. beat.R, multi_beat.R, environment.yml and the are the only files you really need to run beat.
 
 ## Running beat
 
-Run `beat` from the command line as follows. (TBD Update this to include Docker)
+Before you run beat, you will need to activate a conda virtual environment. Simply download and install anaconda. Then in your terminal window, create a conda virtual environment with the following commanda `conda env create -f environment.yml`. You can then run `conda activate beat_env` and `conda info --envs` to ensure it was installed correctly. After this you should be able to run beat with the steps below:
 
-`beat [options] -g <path_to_gene_counts> -a <path_to_metadata> -o <output_directory> -n <dataset_name>`
+Run `beat` from the command line as follows after setting up and activating the conda virtual environment.
+
+If in the same directory:
+`./beat.R [options] -g <path_to_gene_counts> -a <path_to_metadata> -o <output_directory> -n <dataset_name>`
+If one is not in the same directory as beat.R, simply include the path to beat.R before beat.R in the line above.
  
 The following is a detailed description of how the arguments used for `beat`.
 
@@ -67,7 +71,7 @@ The html file is the most valuable output from beat. It contains several plots t
 
 #### pca_plot: \<dataset_name\>_pca_plot.png
 
-Principal Component Analysis (PCA) is a dimensionality reduction technique that emphasizes the variation in the data and allows us to see patterns in the data.X axis represents the first principal component and its contributor rate. Y axis represents the second component and its contributor rate. Points represent each sample.Sample colors and shapes are according to a group the sample belongs to. If the plot shows many samples of the same color (same batch) clustering together, this means there is a strong batch effect presense in the data. If the plot shows colors well mixed the batch effect is not severe in the data.
+Principal Component Analysis (PCA) is a dimensionality reduction technique that emphasizes the variation in the data and allows us to see patterns in the data. The X axis represents the first principal component and its contributor rate. The Y axis represents the second component and its contributor rate. Points represent each sample. Sample colors and shapes are according to a group the sample belongs to. If the plot shows many samples of the same color (same batch) clustering together, this means there is a strong batch effect presense in the data. If the plot shows colors well mixed the batch effect is not severe in the data.
 
 #### kbet_plot: \<dataset_name\>_kbet_plot.png
 
@@ -93,13 +97,15 @@ multi_beat is a tool used to combine several beat reports. multi_beat takes in a
 
 ## Installation
 
-To install the latest version 
+To install the latest version:
 
-`install.packages('beat.zip', repos = NULL, type = 'source')`
+Clone this repository. beat.R, multi_beat.R, environment.yml and the are the only files you really need to run multi_beat.
 
 ## Running multi_beat
 
-Run `multi_beat` from the command line as follows. (TBD Update this to include Docker)
+To run multi_beat, you need to make sure the conda environment from above is activated first.
+
+Run `multi_beat` from the command line as follows.
 
 `multi_beat -d <path_to_parent_directory> -o <output_directory> -n <aggregate_report name>`
  
@@ -144,15 +150,9 @@ T-distributed Stochastic Neighbor Embedding (t-sne) is a machine learning algori
 
 The combined comparative boxplot is a useful way of visualizing how the batches vary in the distribution of each gene's mean expression. Each gene's mean expression value across all samples within a batch are used as data points in constructing the comparative boxplot. If the boxes appear to be similar in their distribution the batch effect is not as severe for the dataset.
 
-## Dependencies and Docker 
-
-beat requires many dependencies to run. In addition to this many of the dependencies don't work with certain R versions. For this reason it is highly recommended that Docker is used to make the use of `beat` stress free.
-
-Docker documentation TBD.
-
 ## Contact the Author
 
-If you are having issues with `beat`, feel free to reach out to me, at roman (dot) kuhn (at) gmail (dot) com.
+If you are having issues with `beat`, feel free to reach out to me, at roman (dot) kuhn1 (at) gmail (dot) com.
 
 ## Cite beat 
 
