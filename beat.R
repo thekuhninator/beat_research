@@ -259,7 +259,7 @@ pca <- function(gene_counts, annot, output_dir, output_name, foi=NULL) {
   
   #name = paste(sapply(paste(unlist(strsplit(output_name, "_")), sep=" "), simpleCap), collapse=" ")
   #plotTitle = paste(capitalize(unlist(strsplit(name, "_"))), collapse= " ")
-  plotTitle <- paste( output_name, " PCA Plot", sep=" ")
+  plotTitle <- paste( output_name, " PCA", sep=" ")
   
   # Generate range of values to iterate through for plot labeling
   label_ncol <- grep("batch", colnames(pca_df))
@@ -303,6 +303,8 @@ pca <- function(gene_counts, annot, output_dir, output_name, foi=NULL) {
 }
 
 
+
+
 tsne_batch <- function(gene_counts, annot, ouput_dir, output_name)
 {
   # output PCA
@@ -311,7 +313,7 @@ tsne_batch <- function(gene_counts, annot, ouput_dir, output_name)
   
   #name = paste(sapply(paste(unlist(strsplit(output_name, " ")), sep=" "), simpleCap), collapse=" ")
   #plotTitle = paste(capitalize(unlist(strsplit(name, "_"))), collapse= " ")
-  plotTitle <- paste( output_name, "T-SNE Plot", sep=" ")
+  plotTitle <- paste( output_name, "T-SNE", sep=" ")
   invisible(capture.output( 
     g <- tsne(t(gene_counts), labels=as.factor(annot$batch), legendtitle ="Batch", dotsize = 2) + 
       ggtitle(plotTitle) +
@@ -322,6 +324,32 @@ tsne_batch <- function(gene_counts, annot, ouput_dir, output_name)
   dev.off()
   
   return (list("path" = file_path, "plot" = g))
+}
+
+pca_m3c <- function(gene_counts, annot, output_dir, output_name, foi=NULL)
+{
+  
+  file_name <- paste(file.path(output_dir, output_name), '.png', sep="")
+  #png(file_name)
+  
+  # output PCA
+  file_path <- paste( file.path(output_dir, output_name), "_pca_picture.png", sep="")
+  png(file=file_path)
+  
+  name = paste(sapply(paste(unlist(strsplit(output_name, "[_]")), sep=" "), simpleCap), collapse=" ")
+  plotTitle = paste(capitalize(unlist(strsplit(name, "_"))), collapse= " ")
+  plotTitle <- paste( plotTitle, " PCA Plot", sep="")
+  
+  g <- M3C::pca(gene_counts, labels=as.factor(annot$batch), legendtitle ="Batch", dotsize = 2) + 
+    ggtitle(plotTitle) +
+    theme(plot.title = element_text(size=20, hjust = .5)) +
+    scale_size_continuous(range = c(1, 2))
+  print(g)
+  dev.off()
+  
+  return (list("path" = file_path, "plot" = g))
+  
+  
 }
 
 grouped_boxplot <- function(gene_counts, annot, output_dir, dataset_name) 
@@ -444,24 +472,29 @@ generate_report <- function(dataset_name, kbet_src, pca_src, tsne_src, boxplot_s
               <!-- *** Section 3 *** --->
               <h2>Principal Component Analysis</h2>
                <iframe width="1000" height="550" frameborder="0" seamless="seamless" scrolling="no" \
-  src="', pca_src, '" ></iframe> <p>Principal component analysis (PCA) is a technique used to emphasize variation and bring out strong patterns in a dataset. Its often used to make data easy to explore and visualize..</p>
+  src="', pca_src, '" ></iframe> <p>Principal Component Analysis (PCA) is a dimensionality reduction technique that emphasizes the variation in the data and allows us to see patterns in the data. The X axis represents the first principal component and its contributor rate. The Y axis represents the second component and its contributor rate. Points represent each sample. Sample colors and shapes are according to a group the sample belongs to. If the plot shows many samples of the same color (same batch) clustering together, this means there is a strong batch effect presense in the data. If the plot shows colors well mixed the batch effect is not severe in the data.
+
+          </p>
               
                <h2>kBET - K-Nearest Neighbour Batch Effect test</h2>
                <iframe width="1000" height="550" frameborder="0" seamless="seamless" scrolling="no" \
-  src="', kbet_src, '"></iframe> <p>The K-Nearest Neighbor Batch Effect Test provides a test for batch effects in high-dimensional single-cell RNA sequencing data. It evaluates the accordance of replicates based on Pearsons chi^2 test. First, the algorithm creates k-nearest neighbour matrix and choses 10% of the samples to check the batch label distribution in its neighbourhood. If the local batch label distribution is sufficiently similar to the global batch label distribution, the chi^2-test does not reject the null hypothesis (that is "all batches are well-mixed"). The neighbourhood size k is fixed for all tests. Next, the test returns a binary result for each of the tested samples. Finally, the result of kBET is the average test rejection rate. The lower the test result, the less bias is introduced by the batch effect. kBET is very sensitive to any kind of bias. If kBET returns an average rejection rate of 1 for your batch-corrected data, you may also consider to compute the average silhouette width and PCA-based batch-effect measures to explore the degree of the batch effect. Learn more about kBET and batch effect correction in our publication.
-  .</p>
+  src="', kbet_src, '"></iframe> <p>The K-Nearest Neighbor Batch Effect Test (kBET) is a test metric used for assessing the severity of a batch effect in the data. The algorithm creates k-nearest neighbour matrix and choses 10% of the samples to check the batch label distribution in its neighbourhood. If the local batch label distribution is sufficiently similar to the global batch label distribution, the chi-squared test does not reject the null hypothesis (that is "all batches are well-mixed"). The neighbourhood size k is fixed for all tests. Next, the test returns a binary result for each of the tested samples. Finally, the result of kBET is the average test rejection rate. The lower the test result, the less bias is introduced by the batch effect. kBET is very sensitive to any kind of bias. By comparing the distribution of the expected and observed plots, one can see how severe the batch effect is in the data. The closer the two boxes are, the less severe, the batch effect. For more information about kbet, see their their paper or github.
+
+</p>
       
               <!-- *** Section 1 *** --->
               <h2>T-Stochastic Neighbor Embedding (T-SNE)</h2>
                <iframe width="1000" height="550" frameborder="0" seamless="seamless" scrolling="no" \
   src="' , tsne_src, '"></iframe>
-              <p>T-SNE is a t-distributed stochastic neighbor estimated.</p>
+              <p>T-distributed Stochastic Neighbor Embedding (t-sne) is a machine learning algorithm for visualization. It is also a dimensionality reduction technique like PCA and is also useful in determing the severity of the batch effect by examining how strongly the colors (batches) are clustering together.</p>
               
               <!-- *** Section 2 *** --->
               <h2>Comparative BoxPlot</h2>
                <iframe width="1000" height="550" frameborder="0" seamless="seamless" scrolling="no" \
   src="',  boxplot_src, '"></iframe>
-              <p>The comparative boxplot shows the difference in the distributions between the different batches. If any of the boxes differ significanlty then there is a difference.</p>
+              <p>The comparative boxplot is a useful way of visualizing how the batches vary in the distribution of each gene mean expression value. The mene gene expression value across all samples within a batch are used as data points in constructing the comparative boxplot. If the boxes appear to be similar in their distribution the batch effect is not as severe for the dataset.
+
+.</p>
   
   
   
@@ -493,7 +526,7 @@ kbet_results <- kbet(gene_counts, annot, output_dir, dataset_name)
 print('Creating t-sne plot...')
 tsne_results <- tsne_batch(gene_counts, annot, output_dir, dataset_name)
 print('Creating pca plot...')
-pca_results <- pca(t(gene_counts), annot, output_dir, dataset_name, factor_of_interest)
+pca_results <- pca_m3c(t(gene_counts), annot, output_dir, dataset_name, factor_of_interest)
 print('Creating boxplot...')
 boxplot_results <- grouped_boxplot(gene_counts, annot, output_dir, dataset_name);
 print('Getting HVGs...')

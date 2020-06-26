@@ -1,6 +1,33 @@
 #!/usr/bin/env Rscript
 
 #
+# Install required libraries
+#
+
+# install neccessary packages
+# install.packages("devtools", dependencies = TRUE)
+# library(devtools)
+# install_github('theislab/kBET')
+# install.packages("bapred")
+# install.packages("ggplot2")
+# install.packages('dplyr')
+# install.packages('gplots')
+# install.packages('getopt')
+# install.packages('sva')
+# #install.packages('base64enc')
+# install.packages('bapred')
+# install.packages('readr')
+# install.packages('matrixStats')
+# # install kBEt
+# install_github('theislab/kBET')
+# # install biocmanager
+# if (!requireNamespace("BiocManager", quietly = TRUE))
+#   install.packages("BiocManager")
+# # install m3c
+# BiocManager::install("M3C")
+
+
+#
 # load in required libraries
 #
 
@@ -57,22 +84,22 @@ if (!dir.exists(parent_dir))
 get_kbet_plot_data <- function(hvgs_hash, original_dataset_name, kbet_accept_hash)
 {
   original_hvg_list <- hvgs_hash[[original_dataset_name]]
-  print('length of orignal hvgs list')
+  #print('length of orignal hvgs list')
   num_original_hvgs <- length(original_hvg_list)
-  print(num_original_hvgs)
+  #print(num_original_hvgs)
   
   # get the hvgs percent retained
   for (dataset_name in datasets)
   {
-    print('dataset name')
-    print(dataset_name)
+    #print('dataset name')
+    #print(dataset_name)
     hvgs_retained <- Reduce(intersect, list(orig = original_hvg_list, other = hvgs_hash[[dataset_name]] ))
-    print('length of hvgs retained')
-    print(length(hvgs_retained))
+    #print('length of hvgs retained')
+    #print(length(hvgs_retained))
     percent_retained <- length(hvgs_retained) / num_original_hvgs
     hvgs_retention[[dataset_name]] <- percent_retained
-    print('percent retained')
-    print(percent_retained)
+    #print('percent retained')
+    #print(percent_retained)
   }
   
   hvgs_retention[["dataset1_combat"]]
