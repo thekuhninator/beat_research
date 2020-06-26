@@ -4,6 +4,19 @@
 # load in required libraries
 #
 
+#
+# Install packages
+#
+# library(devtools)
+# install.packages("png", repos = "http://cran.us.r-project.org")
+# install.packages("raster", repos = "http://cran.us.r-project.org")
+# install.packages('hash', repos = "http://cran.us.r-project.org")
+# install.packages("grid", repos = "http://cran.us.r-project.org")
+# install.packages("gridExtra", repos = "http://cran.us.r-project.org")
+# install.packages("getopt", repos = "http://cran.us.r-project.org")
+# install.packages("knitr", repos = "http://cran.us.r-project.org")
+# install.packages("cowplot", repos = "http://cran.us.r-project.org")
+
 # load in the neccessary libraries
 library(ggplot2)
 library(png)
@@ -64,7 +77,7 @@ get_kbet_plot_data <- function(hvgs_hash, original_dataset_name, kbet_accept_has
   
   hvgs_retention[["dataset1_combat"]]
   
-  kbet_plot_data <- data.frame("kbet_acceptance" = numeric(), "dataset_name" = character(), "hvgs_retained" = numeric())
+  kbet_plot_data <- data.frame("kbet_acceptance" = numeric(), "dataset_name" = character(), "hvgs_retained" = numeric(), stringsAsFactors = FALSE)
   kbet_plot_data
   
   # get the kbet value for each dataset
@@ -72,10 +85,16 @@ get_kbet_plot_data <- function(hvgs_hash, original_dataset_name, kbet_accept_has
   {
     kbet_val <- 1 - kbet_accept_hash[[dataset_name]]
     retained <- hvgs_retention[[dataset_name]]
-    new_data <- c(kbet_val, dataset_name, retained)
+    new_data <- list(kbet_val, dataset_name, retained)
+    #print('new data')
+    #print(new_data)
+    #print(dataset_name)
     kbet_plot_data[nrow(kbet_plot_data) + 1,] = new_data
+    #kbet_plot_data[nrow(kbet_plot_data) + 1, 1] = kbet_val
+    #kbet_plot_data[nrow(kbet_plot_data) , 2] = dataset_name
+    #kbet_plot_data[nrow(kbet_plot_data), 3] = retained
   }
-  
+  print(kbet_plot_data)
   return(kbet_plot_data)
 }
 
@@ -86,7 +105,7 @@ kbet_hvg_scatterplot <- function(kbet_plot_data, output_dir, output_name)
   output_file_path <- file.path(output_dir, file_name)
   png(output_file_path)
   
-  
+  print(kbet_plot_data)
   g <- ggplot(kbet_plot_data, aes(x=as.numeric(hvgs_retained), y = as.numeric(kbet_acceptance), color = dataset_name)) + 
     geom_point(size=4) + 
     labs(title = "KBET vs HVGs Plot", x = "Percent of HVGS Retained",
@@ -250,11 +269,16 @@ toBase64 <- function(image_file) {
 }
 
 # create the output
+print('made it this far')
 kbet_plot_data <- get_kbet_plot_data(hvgs_hash, original_dataset_name, kbet_accept_hash)  
-
+print('made it this far2')
+print(kbet_plot_data)
 kbet_hvg_path  <- kbet_hvg_scatterplot(kbet_plot_data, output_dir, output_name)
+print('made it this far2.5')
 boxplot_path   <- grouped_boxplot(comparative_boxplot_data, output_dir, output_name)
+print('made it this far3')
 pca_tile_path  <- tile_plots(pca_plots, datasets, 'pca', output_dir, output_name, 'PCA Combined Plots')
+print('made it this far4')
 tsne_tile_path <- tile_plots(tsne_plots,  datasets,'tsne',   output_dir, output_name, 'T-SNE Combined Plots')
 
 kbet_hvg_base64  <- toBase64(kbet_hvg_path)

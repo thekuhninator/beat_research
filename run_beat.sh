@@ -1,7 +1,10 @@
 #!/bin/bash
 
+mkdir output
+mkdir output/dataset1
+
 # uncorrected
-./beat.R -g example_data/dataset_1/dataset1_gene_counts.csv -a example_data/dataset_1/dataset1_metadata.csv -u -o  output/dataset1/dataset1_uncorrected -f diagnosis -d dataset1_uncorrected
+./beat.R -g example_data/dataset_1/dataset1_gene_counts.csv -a example_data/dataset_1/dataset1_metadata.csv -u -o  output/dataset1/dataset1_uncorrected -f diagnosis -n dataset1_uncorrected
 
 # limma
 ./beat.R -g example_data/dataset_1_limma/dataset1_limma_gene_counts.csv -a example_data/dataset_1_limma/dataset1_limma_metadata.csv -o output/dataset1/dataset1_limma -n dataset1_limma -f diagnosis

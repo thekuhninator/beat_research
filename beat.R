@@ -1,6 +1,27 @@
 #!/usr/bin/env Rscript
 
 #
+# Install the libraries
+#
+
+#install.packages("devtools", dependencies = TRUE, repos = "http://cran.us.r-project.org")
+# library(devtools)
+# install_github('theislab/kBET')
+# install.packages("bapred", repos = "http://cran.us.r-project.org")
+# install.packages("ggplot2", repos = "http://cran.us.r-project.org" )
+# install.packages('dplyr', repos = "http://cran.us.r-project.org")
+# install.packages('gplots', repos = "http://cran.us.r-project.org")
+# install.packages('getopt', repos = "http://cran.us.r-project.org")
+# install.packages('sva', repos = "http://cran.us.r-project.org")
+# install.packages('bapred', repos = "http://cran.us.r-project.org")
+# install.packages('readr', repos = "http://cran.us.r-project.org")
+# install.packages('matrixStats', repos = "http://cran.us.r-project.org")
+# if (!requireNamespace("BiocManager", quietly = TRUE))
+#   install.packages("BiocManager")
+# BiocManager::install("M3C")
+
+
+#
 # load in required libraries
 #
 
