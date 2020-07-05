@@ -81,6 +81,8 @@ if (!file.exists(input_counts))
 if (!file.exists(input_metadata))
   stop("Cannot find metadata file. Are you sure the path is correct?")
 
+print(paste('Running beat for ', dataset_name, sep=""))
+
 # Read in data file
 gene_counts <- t(read.csv(input_counts, header = TRUE, row.names = 1, check.names=FALSE))
 #Read in annotation file
