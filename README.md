@@ -35,7 +35,7 @@ gene3 | val  | val     | val
 
 <b>-a/--input_annot \<string\> </b> (required)
 
-The path to the metadata file in comma seperated value format (.csv). The metadata should have the rows be the samples and the columns be the features of the metadata. See the example below or the example metadata files in `/example_data` for an example. It is crucial that the sample names be the first column in the metadata. Additionally, these names must match all the sample names in the gene counts file. Otherwise, beat will not be able to run properly.
+The path to the metadata file in comma seperated value format (.csv). The metadata should have the rows be the samples and the columns be the features of the metadata. See the example below or the example metadata files in `/example_data` for an example. **It is crucial that the sample names be the first column in the metadata. Additionally, these names must match all the sample names in the gene counts file.** Otherwise, beat will not be able to run properly. **Additionally, there must be a columnn named "batch" (case sensitive) for beat to run properly.**
 
 Example:
 
@@ -136,11 +136,11 @@ The html file is the most valuable output from multi_beat. It contains several c
 
 #### kBET vs Highly Variable Genes Plot: \<dataset_name>_kbet_hvg_scatterplot.png
 
-The highly variable genes are defined as the top 25%? of genes with the highest variance. multi_beat checks which genes are retained between each dataset and the original uncorrected dataset which was specified by the user when beat was first run.
+**The k-BET vs Highly Variable Genes plot is perhaps the most useful plot from multi_beat**. The highly variable genes are defined as the top 10% of genes with the highest variance. multi_beat checks which genes are retained between each dataset and the original uncorrected dataset which was specified by the user when beat was first run. The percentage of highly variable genes retained after correction serves as a metric for biological preservation. k-BET serves as a metric for the severity of the batch effect. By plotting these two in a scatterplot, one can ascertain which correction method best suits their dataset.
 
 #### Combined PCA Plot: \<dataset_name\>_pca_plot.png
 
-Principal Component Analysis (PCA) is a dimensionality reduction technique that emphasizes the variation in the data and allows us to see patterns in the data.X axis represents the first principal component and its contributor rate. Y axis represents the second component and its contributor rate. Points represent each sample.Sample colors and shapes are according to a group the sample belongs to. If the plot shows many samples of the same color (same batch) clustering together, this means there is a strong batch effect presense in the data. If the plot shows colors well mixed the batch effect is not severe in the data.
+Principal Component Analysis (PCA) is a dimensionality reduction technique that emphasizes the variation in the data and allows us to see patterns in the data. The X axis represents the first principal component and its contributor rate. The Y axis represents the second component and its contributor rate. Points represent each sample. Sample colors and shapes are according to a group the sample belongs to. If the plot shows many samples of the same color (same batch) clustering together, this means there is a strong batch effect presense in the data. If the plot shows colors well mixed the batch effect is not severe in the data.
 
 #### Combined t-sne plot: \<dataset_name\>_t_sne_plot.png
 
