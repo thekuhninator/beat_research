@@ -260,24 +260,23 @@ generate_aggregate_report <- function(kbet_hvg_src, boxplot_src, pca_tile_src, t
           <!-- *** Section 3 *** --->
           <h2>Principal Component Analysis</h2>
           <iframe width="1000" height="550" frameborder="0" seamless="seamless" scrolling="no" \
-          src="', pca_tile_src, '" ></iframe> <p>Principal component analysis (PCA) is a technique used to emphasize variation and bring out strong patterns in a dataset. Its often used to make data easy to explore and visualize..</p>
+          src="', pca_tile_src, '" ></iframe> <p>Principal Component Analysis (PCA) is a dimensionality reduction technique that emphasizes the variation in the data and allows us to see patterns in the data. The X axis represents the first principal component and its contributor rate. The Y axis represents the second component and its contributor rate. Points represent each sample. Sample colors and shapes are according to a group the sample belongs to. If the plot shows many samples of the same color (same batch) clustering together, this means there is a strong batch effect presense in the data. If the plot shows colors well mixed the batch effect is not severe in the data.</p>
           
           <h2>kBET - K-Nearest Neighbour Batch Effect Test Acceptance Rate vs HVGs Retention Rate</h2>
           <iframe width="1000" height="550" frameborder="0" seamless="seamless" scrolling="no" \
-          src="', kbet_hvg_src, '"></iframe> <p>The K-Nearest Neighbor Batch Effect Test provides a test for batch effects in high-dimensional single-cell RNA sequencing data. It evaluates the accordance of replicates based on Pearsons chi^2 test. First, the algorithm creates k-nearest neighbour matrix and choses 10% of the samples to check the batch label distribution in its neighbourhood. If the local batch label distribution is sufficiently similar to the global batch label distribution, the chi^2-test does not reject the null hypothesis (that is "all batches are well-mixed"). The neighbourhood size k is fixed for all tests. Next, the test returns a binary result for each of the tested samples. Finally, the result of kBET is the average test rejection rate. The lower the test result, the less bias is introduced by the batch effect. kBET is very sensitive to any kind of bias. If kBET returns an average rejection rate of 1 for your batch-corrected data, you may also consider to compute the average silhouette width and PCA-based batch-effect measures to explore the degree of the batch effect. Learn more about kBET and batch effect correction in our publication.
-          . The highly variable genes (HVGs) metric serves as a metric for biological preservation. The percent retained is calculated as followed (number of HVGs in both the corrrected dataset and uncorrected dataset)/ (number of hvgs in uncorrected dataset) </p>
+          src="', kbet_hvg_src, '"></iframe> <p>The highly variable genes are defined as the top 10% of genes with the highest variance. multi_beat checks which genes are retained between each dataset and the original uncorrected dataset which was specified by the user when beat was first run. The percentage of highly variable genes retained after correction serves as a metric for biological preservation. k-BET serves as a metric for the severity of the batch effect. By plotting these two in a scatterplot, one can ascertain which correction method best suits their dataset.</p>
           
           <!-- *** Section 1 *** --->
           <h2>T-Stochastic Neighbor Embedding (T-SNE) Tiled Plots</h2>
           <iframe width="1000" height="550" frameborder="0" seamless="seamless" scrolling="no" \
           src="' , tsne_tile_src, '"></iframe>
-          <p>T-SNE is a t-distributed stochastic neighbor estimated.</p>
+          <p>T-distributed Stochastic Neighbor Embedding (t-sne) is a machine learning algorithm for visualization. It is also a dimensionality reduction technique like PCA and is also useful in determing the severity of the batch effect by examining how strongly the colors (batches) are clustering together.</p>
           
           <!-- *** Section 2 *** --->
           <h2>Comparative BoxPlot</h2>
           <iframe width="1000" height="550" frameborder="0" seamless="seamless" scrolling="no" \
           src="',  boxplot_src, '"></iframe>
-          <p>The comparative boxplot shows the difference in the distributions between the different batches. If any of the boxes differ significanlty then there is a difference.</p>
+          <p>The combined comparative boxplot is a useful way of visualizing how the batches vary in the distribution of each gene\'s mean expression. Each gene\'s mean expression value across all samples within a batch are used as data points in constructing the comparative boxplot. If the boxes appear to be similar in their distribution the batch effect is not as severe for the dataset.</p>
           
           
           
