@@ -136,7 +136,7 @@ The html file is the most valuable output from multi_beat. It contains several c
 
 #### kBET vs Highly Variable Genes Plot: \<dataset_name>_kbet_hvg_scatterplot.png
 
-The highly variable genes are defined as the top 10% of genes with the highest variance. multi_beat checks which genes are retained between each dataset and the original uncorrected dataset which was specified by the user when beat was first run.
+**The k-BET vs Highly Variable Genes plot is perhaps the most useful plot from multi_beat**. The highly variable genes are defined as the top 10% of genes with the highest variance. multi_beat checks which genes are retained between each dataset and the original uncorrected dataset which was specified by the user when beat was first run. The percentage of highly variable genes retained after correction serves as a metric for biological preservation. k-BET serves as a metric for the severity of the batch effect. By plotting these two in a scatterplot, one can ascertain which correction method best suits their dataset.
 
 #### Combined PCA Plot: \<dataset_name\>_pca_plot.png
 
