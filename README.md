@@ -136,11 +136,11 @@ The html file is the most valuable output from multi_beat. It contains several c
 
 #### kBET vs Highly Variable Genes Plot: \<dataset_name>_kbet_hvg_scatterplot.png
 
-The highly variable genes are defined as the top 25%? of genes with the highest variance. multi_beat checks which genes are retained between each dataset and the original uncorrected dataset which was specified by the user when beat was first run.
+The highly variable genes are defined as the top 10% of genes with the highest variance. multi_beat checks which genes are retained between each dataset and the original uncorrected dataset which was specified by the user when beat was first run.
 
 #### Combined PCA Plot: \<dataset_name\>_pca_plot.png
 
-Principal Component Analysis (PCA) is a dimensionality reduction technique that emphasizes the variation in the data and allows us to see patterns in the data.X axis represents the first principal component and its contributor rate. Y axis represents the second component and its contributor rate. Points represent each sample.Sample colors and shapes are according to a group the sample belongs to. If the plot shows many samples of the same color (same batch) clustering together, this means there is a strong batch effect presense in the data. If the plot shows colors well mixed the batch effect is not severe in the data.
+Principal Component Analysis (PCA) is a dimensionality reduction technique that emphasizes the variation in the data and allows us to see patterns in the data. The X axis represents the first principal component and its contributor rate. The Y axis represents the second component and its contributor rate. Points represent each sample. Sample colors and shapes are according to a group the sample belongs to. If the plot shows many samples of the same color (same batch) clustering together, this means there is a strong batch effect presense in the data. If the plot shows colors well mixed the batch effect is not severe in the data.
 
 #### Combined t-sne plot: \<dataset_name\>_t_sne_plot.png
 
