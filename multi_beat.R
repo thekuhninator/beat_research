@@ -74,6 +74,8 @@ output_name <- opt$output_name
 # create the direcotry if it does not already exist
 dir.create(file.path(output_dir), showWarnings = FALSE)
 
+print(paste('Running multi_beat for ', output_name, sep=""))
+
 # check if the parent_dir exists...
 if (!dir.exists(parent_dir))
   stop("Cannot find parent directory. Are you sure the path is correct?")
@@ -295,16 +297,11 @@ toBase64 <- function(image_file) {
 }
 
 # create the output
-print('made it this far')
 kbet_plot_data <- get_kbet_plot_data(hvgs_hash, original_dataset_name, kbet_accept_hash)  
-print('made it this far2')
 print(kbet_plot_data)
 kbet_hvg_path  <- kbet_hvg_scatterplot(kbet_plot_data, output_dir, output_name)
-print('made it this far2.5')
 boxplot_path   <- grouped_boxplot(comparative_boxplot_data, output_dir, output_name)
-print('made it this far3')
 pca_tile_path  <- tile_plots(pca_plots, datasets, 'pca', output_dir, output_name, 'PCA Combined Plots')
-print('made it this far4')
 tsne_tile_path <- tile_plots(tsne_plots,  datasets,'tsne',   output_dir, output_name, 'T-SNE Combined Plots')
 
 kbet_hvg_base64  <- toBase64(kbet_hvg_path)
