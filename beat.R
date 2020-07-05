@@ -338,7 +338,7 @@ pca_m3c <- function(gene_counts, annot, output_dir, output_name, foi=NULL)
   
   name = paste(sapply(paste(unlist(strsplit(output_name, "[_]")), sep=" "), simpleCap), collapse=" ")
   plotTitle = paste(capitalize(unlist(strsplit(name, "_"))), collapse= " ")
-  plotTitle <- paste( plotTitle, " PCA Plot", sep="")
+  plotTitle <- paste( plotTitle, " PCA", sep="")
   
   g <- M3C::pca(gene_counts, labels=as.factor(annot$batch), legendtitle ="Batch", dotsize = 2) + 
     ggtitle(plotTitle) +
