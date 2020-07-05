@@ -294,7 +294,7 @@ PCA <- function(gene_counts, annot, output_dir, output_name) {
   plotTitle = paste(capitalize(unlist(strsplit(name, "_"))), collapse= " ")
   
   
-  title(paste( plotTitle, " PCA Plot", sep=""))
+  title(paste( plotTitle, " PCA", sep=""))
   
   #print(ggplot(pca_df, aes(x=pca_df[,xaxis], y=pca_df[,yaxis], color= pca_df[, label_ncol], shape = factor(pca_df[,post_ncol]))) # I added factor here
   #       + geom_point(size = 2) + labs(x =x_label, y = y_label, color=colnames(pca_df[label_ncol]),shape=colnames(pca_df[post_ncol]),
@@ -351,7 +351,7 @@ tsne_batch <- function(gene_counts, annot, ouput_dir, output_name)
 
   name = paste(sapply(paste(unlist(strsplit(output_name, "[_]")), sep=" "), simpleCap), collapse=" ")
   plotTitle = paste(capitalize(unlist(strsplit(name, "_"))), collapse= " ")
-  plotTitle <- paste( plotTitle, "\n T-SNE Plot", sep="")
+  plotTitle <- paste( plotTitle, "T-SNE", sep="")
   
   g <- tsne(t(gene_counts), labels=as.factor(annot$batch), legendtitle ="Batch", dotsize = 2) + 
     ggtitle(plotTitle) +
@@ -718,6 +718,54 @@ save(kbet_results, tsne_plot, boxplot_data, pca_plot, file="BEATLOGTEST.beat")
 ```
 
 new pca function
+
+```{r}
+
+pca_m3c <- function(gene_counts, annot, output_dir, output_name, foi=NULL)
+{
+  
+    file_name <- paste(file.path(output_dir, output_name), '.png', sep="")
+  #png(file_name)
+
+    # output PCA
+  file_path <- paste( file.path(output_dir, output_name), "_picture.png", sep="")
+  #png(file=file_path)
+
+  name = paste(sapply(paste(unlist(strsplit(output_name, "[_]")), sep=" "), simpleCap), collapse=" ")
+  plotTitle = paste(capitalize(unlist(strsplit(name, "_"))), collapse= " ")
+  plotTitle <- paste( plotTitle, " PCA Plot", sep="")
+  
+  g <- M3C::pca(gene_counts, labels=as.factor(annot$batch), legendtitle ="Batch", dotsize = 2) + 
+    ggtitle(plotTitle) +
+    theme(plot.title = element_text(size=20, hjust = .5)) +
+    scale_size_continuous(range = c(1, 2))
+  #print(typeof(g))
+  #print(g)
+  #dev.off()
+  return (list("path" = file_path, "plot" = g))
+
+  
+}
+
+
+data_folder = "C:/Users/Roman/Documents/Work/Depression_and_Immunology/beat/example_data/dataset_1_mean_centered"
+input_counts = "C:/Users/Roman/Documents/Work/Depression_and_Immunology/beat/example_data/dataset_1_mean_centered_roman/dataset_1_mean_centered_roman_gene_counts.csv"
+input_metadata = "C:/Users/Roman/Documents/Work/Depression_and_Immunology/beat/example_data/dataset_1_mean_centered_roman/dataset_1_mean_centered_roman_metadata.csv"
+output_dir = "C:/Users/Roman/Documents/Work/Depression_and_Immunology/beat"
+output_name = "combined_dataset"
+
+# Read in data file
+#gene_counts <- t(read.csv(input_counts, header = TRUE, row.names = 1, check.names=FALSE))
+#Read in annotation file
+#annot <- read.csv(input_metadata, header = TRUE, row.names = 1, check.names = FALSE)
+
+pca_plot <- pca_m3c(t(gene_counts), annot, output_dir, output_name)
+
+print(pca_plot)
+
+
+
+```
 
 ```{r}
 
