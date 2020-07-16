@@ -16,7 +16,10 @@ libssl-dev
 
 ## copy file
 COPY install_packages.R install_packages.R
+COPY beat.R beat.R
+COPY multi_beat.R multi_beat.R
 
 ## install R-packages...
 RUN Rscript install_packages.R
+
 
