@@ -340,8 +340,11 @@ Now let's do T-SNE
 ```{r}
 
 
-tsne_batch <- function(gene_counts, annot, ouput_dir, output_name)
+tsne_batch <- function(gene_counts, annot, ouput_dir, output_name, foi)
 {
+  plot_labels = "Batch"
+  if(missing(foi)) { foi = NULL }
+  else { plot_labels = c("Batch", "diagnosis") }
   file_name <- paste(file.path(output_dir, output_name), '.png', sep="")
   #png(file_name)
 
@@ -353,7 +356,7 @@ tsne_batch <- function(gene_counts, annot, ouput_dir, output_name)
   plotTitle = paste(capitalize(unlist(strsplit(name, "_"))), collapse= " ")
   plotTitle <- paste( plotTitle, "T-SNE", sep="")
   
-  g <- tsne(t(gene_counts), labels=as.factor(annot$batch), legendtitle ="Batch", dotsize = 2) + 
+  g <- tsne(t(gene_counts), labels=plot_labels, legendtitle ="Batch", dotsize = 2) + 
     ggtitle(plotTitle) +
     theme(plot.title = element_text(size=20, hjust = .5)) +
     scale_size_continuous(range = c(1, 2))
