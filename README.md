@@ -3,9 +3,11 @@ BEAT - (Batch Effect Assessment Tool) is designed for researchers to assess the 
 
 ## Installation 
 
-To install the latest version:
+To install the latest version of beat and multi_beat (warning: this is known to work on mac but is untested for windows machines):
 
-Clone this repository. beat.R, multi_beat.R, environment.yml and the are the only files you really need to run beat.
+Clone this repository. beat.R, multi_beat.R, environment.yml and the are the only files you really need to run beat. You can also download the example data to try to run this. 
+
+Open up a terminal and cd into the directory which contains the environment.yml file. Simply run the following commands: `conda env create -f environment.yml -n beat_env` to create the beat virtual environment. Then activate the virtual environment by running: `conda activate beat_env`. You must activate the virtual environment anytime you want to run beat. From here you can follow the instructions on how to run beat.
 
 ## Running beat
 
@@ -94,12 +96,6 @@ ___
 # multi_beat
 
 multi_beat is a tool used to combine several beat reports. multi_beat takes in as input a parent directory, output_directory, and dataset_name. It generates as output a report of the combined pca plots, combined t-sne plots, combined comparative boxplot, as well as a scatterplot of highly variable genes retained vs kBET acceptance rate. This is best used when all the beat files used for the report belong to the same dataset, as the legend will be shared between them. This is useful in determining which of several batch correction methods works best on a dataset. 
-
-## Installation
-
-To install the latest version:
-
-Clone this repository. beat.R, multi_beat.R, environment.yml and the are the only files you really need to run multi_beat.
 
 ## Running multi_beat
 
